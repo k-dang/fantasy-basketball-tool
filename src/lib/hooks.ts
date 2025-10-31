@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import type { League } from '@/types/yahoo';
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import type { League } from "@/types/yahoo";
 
 interface LeaguesResponse {
   leagues: League[];
@@ -21,16 +21,16 @@ export function useLeagues() {
   const router = useRouter();
 
   return useQuery<LeaguesResponse, Error>({
-    queryKey: ['leagues'],
+    queryKey: ["leagues"],
     queryFn: async () => {
-      const response = await fetch('/api/leagues');
+      const response = await fetch("/api/leagues");
 
       if (!response.ok) {
         if (response.status === 401) {
-          router.push('/');
-          throw new Error('Unauthorized');
+          router.push("/");
+          throw new Error("Unauthorized");
         }
-        throw new Error('Failed to fetch leagues');
+        throw new Error("Failed to fetch leagues");
       }
 
       const data = await response.json();
@@ -47,20 +47,20 @@ export function useTeams(leagueKey: string | null) {
   const router = useRouter();
 
   return useQuery<TeamsResponse, Error>({
-    queryKey: ['teams', leagueKey],
+    queryKey: ["teams", leagueKey],
     queryFn: async () => {
       if (!leagueKey) {
-        throw new Error('League key is required');
+        throw new Error("League key is required");
       }
 
       const response = await fetch(`/api/leagues/${leagueKey}/teams`);
 
       if (!response.ok) {
         if (response.status === 401) {
-          router.push('/');
-          throw new Error('Unauthorized');
+          router.push("/");
+          throw new Error("Unauthorized");
         }
-        throw new Error('Failed to fetch teams');
+        throw new Error("Failed to fetch teams");
       }
 
       const data = await response.json();
@@ -74,25 +74,24 @@ export function useTeams(leagueKey: string | null) {
 /**
  * Hook to fetch stats for a specific team
  */
-// export function useTeamStats(teamKey: string | null) {
-//   return useQuery<TeamStatsResponse, Error>({
-//     queryKey: ['teamStats', teamKey],
-//     queryFn: async () => {
-//       if (!teamKey) {
-//         throw new Error('Team key is required');
-//       }
+export function useTeamStats(teamKey: string | null) {
+  return useQuery<TeamStatsResponse, Error>({
+    queryKey: ["teamStats", teamKey],
+    queryFn: async () => {
+      if (!teamKey) {
+        throw new Error("Team key is required");
+      }
 
-//       const response = await fetch(`/api/teams/${teamKey}/stats`);
+      const response = await fetch(`/api/teams/${teamKey}/stats`);
 
-//       if (!response.ok) {
-//         throw new Error('Failed to fetch team stats');
-//       }
+      if (!response.ok) {
+        throw new Error("Failed to fetch team stats");
+      }
 
-//       const data = await response.json();
-//       return data;
-//     },
-//     enabled: !!teamKey,
-//     retry: false,
-//   });
-// }
-
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!teamKey,
+    retry: false,
+  });
+}

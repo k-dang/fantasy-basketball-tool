@@ -1,4 +1,7 @@
-import type { YahooUsersGamesLeaguesResponse } from "@/types/yahoo";
+import type {
+  YahooLeagueTeamsResponse,
+  YahooUsersGamesLeaguesResponse,
+} from "@/types/yahoo";
 
 const YAHOO_FANTASY_API_BASE = "https://fantasysports.yahooapis.com/fantasy/v2";
 
@@ -47,7 +50,10 @@ export async function getActiveUserLeagues(accessToken: string) {
   return justLeagues;
 }
 
-export async function getLeagueTeams(accessToken: string, leagueKey: string) {
+export async function getLeagueTeams(
+  accessToken: string,
+  leagueKey: string
+): Promise<YahooLeagueTeamsResponse> {
   const url = `${YAHOO_FANTASY_API_BASE}/league/${leagueKey}/teams?format=json`;
   const response = await fetch(url, {
     headers: {
@@ -62,18 +68,22 @@ export async function getLeagueTeams(accessToken: string, leagueKey: string) {
     );
   }
 
-  const data = await response.json();
-  const league = data.fantasy_content?.league[1].teams;
+  return response.json();
+}
 
-  const teams =
-    Object.values(league)
-      .filter((teams) => typeof teams === "object")
-      .map((json) => ({
-        team_key: json?.team[0][0].team_key,
-        name: json?.team[0][2].name,
-      })) ?? [];
+export async function getTeams(accessToken: string, leagueKey: string) {
+  const data = await getLeagueTeams(accessToken, leagueKey);
 
-  return teams ?? [];
+  const teams = data.fantasy_content.league[1].teams;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { count: _1, ...teamsWithoutCount } = teams;
+
+  const justTeams = Object.values(teamsWithoutCount).map((t) => ({
+    team_key: t.team[0][0].team_key,
+    name: t.team[0][2].name,
+  }));
+
+  return justTeams;
 }
 
 export async function getTeamStats(accessToken: string, teamKey: string) {

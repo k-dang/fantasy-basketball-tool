@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLeagueTeams } from '@/lib/yahoo-api';
+import { getTeams } from '@/lib/yahoo-api';
 import { getAccessTokenFromCookies, updateTokenCookies } from '@/lib/api-utils';
 
 export async function GET(
@@ -17,7 +17,7 @@ export async function GET(
     }
 
     const { leagueKey } = await params;
-    const teams = await getLeagueTeams(tokenResult.accessToken, leagueKey);
+    const teams = await getTeams(tokenResult.accessToken, leagueKey);
 
     const response = NextResponse.json({ teams });
 

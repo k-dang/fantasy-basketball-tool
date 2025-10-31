@@ -186,9 +186,14 @@ export default function DashboardPage() {
           {/* Team Stats */}
           {selectedTeam && (
             <div>
-              {teamStats && <code>{JSON.stringify(teamStats, null, 2)}</code>}
+              <code>{selectedTeam}</code>
             </div>
           )}
+          {/* {selectedTeam && (
+            <div>
+              {teamStats && <code>{JSON.stringify(teamStats, null, 2)}</code>}
+            </div>
+          )} */}
         </div>
       )}
     </div>

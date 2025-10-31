@@ -51,4 +51,40 @@ export interface League {
   league_key: string;
   league_id: string;
   name: string;
+  season: string;
+}
+
+export interface TeamLogo {
+  size: string;
+  url: string;
+}
+
+export interface TeamLogoContainer {
+  team_logo: TeamLogo;
+}
+
+export interface RosterAdds {
+  coverage_type: string;
+  coverage_value: number;
+  value: string;
+}
+
+export type TeamArrayElement = Record<string, unknown>;
+
+export type TeamArray = TeamArrayElement[];
+
+export interface TeamContainer {
+  team: [TeamArray];
+}
+
+export interface TeamsContainer {
+  teams: Omit<Record<string, TeamContainer>, "count"> & {
+    count: number;
+  };
+}
+
+export interface YahooLeagueTeamsResponse {
+  fantasy_content: {
+    league: [League, TeamsContainer];
+  };
 }
