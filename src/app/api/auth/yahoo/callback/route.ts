@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { exchangeCodeForTokens } from '@/lib/auth';
+import { exchangeCodeForTokens } from '@/lib/yahoo-auth';
 import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {

@@ -24,12 +24,7 @@ export async function getYahooConfig() {
       throw new Error("Yahoo OAuth client ID not configured");
     }
 
-    // PKCE flow doesn't require client secret
-    yahooConfig = await discovery(
-      new URL(YAHOO_DISCOVERY_URL),
-      clientId
-      // No client secret or ClientSecretPost needed for PKCE
-    );
+    yahooConfig = await discovery(new URL(YAHOO_DISCOVERY_URL), clientId);
   }
   return yahooConfig;
 }
@@ -59,13 +54,9 @@ export async function getAuthorizationUrl(
     redirect_uri: redirectUri,
     scope: "openid profile email fspt-r", // fspt-r is required for Fantasy Sports API read access
     state,
-    // Note: nonce removed as Yahoo's implementation may not fully support it
     code_challenge: codeChallenge,
     code_challenge_method: "S256", // SHA256
   });
-
-  console.log("Authorization URL:", url.toString());
-  console.log("Redirect URI:", redirectUri);
 
   return url.toString();
 }
@@ -85,12 +76,10 @@ export async function exchangeCodeForTokens(
   const callbackUrl = new URL(redirectUri);
   callbackUrl.searchParams.set("code", code);
 
-  // PKCE requires code_verifier
-  // Note: Nonce validation is skipped as Yahoo's implementation may not fully support it
   const tokenSet = await authorizationCodeGrant(
     config,
     callbackUrl,
-    undefined, // checks - skipping nonce validation for Yahoo compatibility
+    undefined,
     { code_verifier: codeVerifier }
   );
 

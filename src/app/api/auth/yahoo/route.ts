@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthorizationUrl, generatePKCE } from '@/lib/auth';
+import { getAuthorizationUrl, generatePKCE } from '@/lib/yahoo-auth';
 import { randomBytes } from 'crypto';
 
 export async function GET() {
