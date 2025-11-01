@@ -105,3 +105,63 @@ export interface Stat {
     value: string;
   };
 }
+
+export interface YahooTeamMatchupsResponse {
+  fantasy_content: {
+    team: [TeamArray, TeamMatchups];
+  };
+}
+
+export interface TeamMatchups {
+  matchups: MatchupsContainer;
+}
+
+export type MatchupsContainer = Omit<
+  Record<string, MatchupContainer>,
+  "count"
+> & {
+  count: number;
+};
+
+export interface MatchupContainer {
+  matchup: Matchup[];
+}
+
+export interface Matchup {
+  week?: string;
+  week_start?: string;
+  week_end?: string;
+  status?: string;
+  is_playoffs?: string;
+  is_consolation?: string;
+  is_tied?: string;
+  winner_team_key?: string;
+  teams?: Omit<Record<string, MatchupTeamContainer>, "count"> & {
+    count: number;
+  };
+}
+
+export interface MatchupTeamContainer {
+  team: [TeamArray, MatchupTeamStats];
+}
+
+export interface MatchupTeamStats {
+  team_stats: {
+    coverage_type: string;
+    week?: string;
+    stats: Array<Stat>;
+  };
+}
+
+export interface ParsedMatchup {
+  week: string;
+  week_start?: string;
+  week_end?: string;
+  status?: string;
+  is_playoffs?: boolean;
+  is_consolation?: boolean;
+  is_tied?: boolean;
+  winner_team_key?: string;
+  team_stats?: Stat[];
+  opponent_stats?: Stat[];
+}

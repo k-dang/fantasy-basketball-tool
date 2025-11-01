@@ -2,6 +2,8 @@ import type {
   YahooLeagueTeamsResponse,
   YahooTeamStatsResponse,
   YahooUsersGamesLeaguesResponse,
+  YahooTeamMatchupsResponse,
+  ParsedMatchup,
 } from "@/types/yahoo";
 
 const YAHOO_FANTASY_API_BASE = "https://fantasysports.yahooapis.com/fantasy/v2";
@@ -155,7 +157,10 @@ export async function getLeagueSettings(
   return data.fantasy_content.league[1].settings[0];
 }
 
-export async function getTeamMatchups(accessToken: string, teamKey: string) {
+export async function getTeamMatchups(
+  accessToken: string,
+  teamKey: string
+): Promise<YahooTeamMatchupsResponse> {
   const url = `${YAHOO_FANTASY_API_BASE}/team/${teamKey}/matchups?format=json`;
   const response = await fetch(url, {
     headers: {
@@ -170,6 +175,77 @@ export async function getTeamMatchups(accessToken: string, teamKey: string) {
     );
   }
 
-  const data = await response.json();
-  return data.fantasy_content.team[1].matchups[0];
+  return await response.json();
+}
+
+export function parseMatchups(
+  matchupsData: YahooTeamMatchupsResponse,
+  teamKey: string
+): ParsedMatchup[] {
+  const matchups = matchupsData.fantasy_content.team[1].matchups;
+  const parsedMatchups: ParsedMatchup[] = [];
+
+  if (matchups && typeof matchups === "object" && "count" in matchups) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { count: _count, ...matchupsWithoutCount } = matchups;
+    const matchupEntries = Object.values(matchupsWithoutCount);
+
+    for (const matchupContainer of matchupEntries) {
+      if (matchupContainer?.matchup?.[0]) {
+        const matchup = matchupContainer.matchup[0];
+        const parsedMatchup: ParsedMatchup = {
+          week: matchup.week || "",
+          week_start: matchup.week_start,
+          week_end: matchup.week_end,
+          status: matchup.status,
+          is_playoffs: matchup.is_playoffs === "1",
+          is_consolation: matchup.is_consolation === "1",
+          is_tied: matchup.is_tied === "1",
+          winner_team_key: matchup.winner_team_key,
+        };
+
+        // Extract team stats from the matchup
+        if (matchup.teams && typeof matchup.teams === "object" && "count" in matchup.teams) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { count: _teamsCount, ...teamsWithoutCount } = matchup.teams;
+          const teamEntries = Object.values(teamsWithoutCount);
+          
+          for (const teamContainer of teamEntries) {
+            if (teamContainer?.team?.[1]?.team_stats) {
+              const teamStats = teamContainer.team[1].team_stats;
+              // Try to get team key from various possible structures
+              let teamKeyFromMatchup: string | undefined;
+              if (Array.isArray(teamContainer.team[0])) {
+                const teamData = teamContainer.team[0];
+                const teamItem = teamData.find((item: unknown) => 
+                  typeof item === 'object' && item !== null && 'team_key' in item
+                ) as { team_key?: string } | undefined;
+                teamKeyFromMatchup = teamItem?.team_key;
+              } else if (teamContainer.team[0] && typeof teamContainer.team[0] === 'object' && 'team_key' in teamContainer.team[0]) {
+                teamKeyFromMatchup = (teamContainer.team[0] as { team_key?: string }).team_key;
+              }
+              
+              // Check if this is the selected team or opponent
+              if (teamKeyFromMatchup === teamKey) {
+                parsedMatchup.team_stats = teamStats.stats || [];
+              } else if (!parsedMatchup.opponent_stats) {
+                parsedMatchup.opponent_stats = teamStats.stats || [];
+              }
+            }
+          }
+        }
+
+        parsedMatchups.push(parsedMatchup);
+      }
+    }
+  }
+
+  // Sort by week number
+  parsedMatchups.sort((a, b) => {
+    const weekA = parseInt(a.week) || 0;
+    const weekB = parseInt(b.week) || 0;
+    return weekA - weekB;
+  });
+
+  return parsedMatchups;
 }
