@@ -1,14 +1,14 @@
-import { 
-  discovery, 
-  buildAuthorizationUrl, 
-  authorizationCodeGrant, 
+import {
+  discovery,
+  buildAuthorizationUrl,
+  authorizationCodeGrant,
   refreshTokenGrant,
   randomPKCECodeVerifier,
-  calculatePKCECodeChallenge
-} from 'openid-client';
-import type { YahooTokens } from '@/types/yahoo';
+  calculatePKCECodeChallenge,
+} from "openid-client";
 
-const YAHOO_DISCOVERY_URL = 'https://api.login.yahoo.com/.well-known/openid-configuration';
+const YAHOO_DISCOVERY_URL =
+  "https://api.login.yahoo.com/.well-known/openid-configuration";
 
 let yahooConfig: Awaited<ReturnType<typeof discovery>> | null = null;
 
@@ -21,7 +21,7 @@ export async function getYahooConfig() {
     const clientId = process.env.YAHOO_CLIENT_ID;
 
     if (!clientId) {
-      throw new Error('Yahoo OAuth client ID not configured');
+      throw new Error("Yahoo OAuth client ID not configured");
     }
 
     // PKCE flow doesn't require client secret
@@ -47,23 +47,25 @@ export async function generatePKCE() {
  * Generate authorization URL with PKCE
  */
 export async function getAuthorizationUrl(
-  state: string, 
+  state: string,
   codeChallenge: string
 ) {
   const config = await getYahooConfig();
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/yahoo/callback`;
+  const redirectUri = `${
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  }/api/auth/yahoo/callback`;
 
   const url = buildAuthorizationUrl(config, {
     redirect_uri: redirectUri,
-    scope: 'openid profile email fspt-r', // fspt-r is required for Fantasy Sports API read access
+    scope: "openid profile email fspt-r", // fspt-r is required for Fantasy Sports API read access
     state,
     // Note: nonce removed as Yahoo's implementation may not fully support it
     code_challenge: codeChallenge,
-    code_challenge_method: 'S256', // SHA256
+    code_challenge_method: "S256", // SHA256
   });
 
-  console.log('Authorization URL:', url.toString());
-  console.log('Redirect URI:', redirectUri);
+  console.log("Authorization URL:", url.toString());
+  console.log("Redirect URI:", redirectUri);
 
   return url.toString();
 }
@@ -74,12 +76,14 @@ export async function getAuthorizationUrl(
 export async function exchangeCodeForTokens(
   code: string,
   codeVerifier: string
-): Promise<YahooTokens> {
+) {
   const config = await getYahooConfig();
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/yahoo/callback`;
+  const redirectUri = `${
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  }/api/auth/yahoo/callback`;
 
   const callbackUrl = new URL(redirectUri);
-  callbackUrl.searchParams.set('code', code);
+  callbackUrl.searchParams.set("code", code);
 
   // PKCE requires code_verifier
   // Note: Nonce validation is skipped as Yahoo's implementation may not fully support it
@@ -91,33 +95,33 @@ export async function exchangeCodeForTokens(
   );
 
   if (!tokenSet.access_token || !tokenSet.refresh_token) {
-    throw new Error('Failed to obtain tokens from Yahoo');
+    throw new Error("Failed to obtain tokens from Yahoo");
   }
 
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
-    expiresAt: typeof tokenSet.expires_at === 'number' ? tokenSet.expires_at : undefined,
+    expiresAt:
+      typeof tokenSet.expires_at === "number" ? tokenSet.expires_at : undefined,
   };
 }
 
 /**
  * Refresh access token
  */
-export async function refreshAccessToken(
-  refreshToken: string
-): Promise<YahooTokens> {
+export async function refreshAccessToken(refreshToken: string) {
   const config = await getYahooConfig();
 
   const tokenSet = await refreshTokenGrant(config, refreshToken);
 
   if (!tokenSet.access_token) {
-    throw new Error('Failed to refresh access token');
+    throw new Error("Failed to refresh access token");
   }
 
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token || refreshToken,
-    expiresAt: typeof tokenSet.expires_at === 'number' ? tokenSet.expires_at : undefined,
+    expiresAt:
+      typeof tokenSet.expires_at === "number" ? tokenSet.expires_at : undefined,
   };
 }
