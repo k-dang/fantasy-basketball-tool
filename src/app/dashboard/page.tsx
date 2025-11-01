@@ -41,20 +41,6 @@ export default function DashboardPage() {
   const teams = teamsData?.teams || [];
   const teamStats = teamStatsData?.team ?? null;
 
-  // Auto-select first league when leagues are loaded
-  useEffect(() => {
-    if (
-      leaguesData?.leagues &&
-      leaguesData.leagues.length > 0 &&
-      !selectedLeague
-    ) {
-      // Use setTimeout to avoid cascading renders
-      setTimeout(() => {
-        setSelectedLeague(leaguesData.leagues[0]);
-      }, 0);
-    }
-  }, [leaguesData, selectedLeague]);
-
   if (loadingLeagues) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -184,16 +170,6 @@ export default function DashboardPage() {
           )}
 
           {/* Team Stats */}
-          {selectedTeam && (
-            <div>
-              <code>{selectedTeam}</code>
-            </div>
-          )}
-          {/* {selectedTeam && (
-            <div>
-              {teamStats && <code>{JSON.stringify(teamStats, null, 2)}</code>}
-            </div>
-          )} */}
         </div>
       )}
     </div>

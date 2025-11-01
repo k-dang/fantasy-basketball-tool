@@ -1,5 +1,6 @@
 import type {
   YahooLeagueTeamsResponse,
+  YahooTeamStatsResponse,
   YahooUsersGamesLeaguesResponse,
 } from "@/types/yahoo";
 
@@ -22,7 +23,7 @@ export async function getUserGamesLeagues(
     );
   }
 
-  return response.json();
+  return await response.json();
 }
 
 export async function getActiveUserLeagues(accessToken: string) {
@@ -68,7 +69,7 @@ export async function getLeagueTeams(
     );
   }
 
-  return response.json();
+  return await response.json();
 }
 
 export async function getTeams(accessToken: string, leagueKey: string) {
@@ -86,7 +87,10 @@ export async function getTeams(accessToken: string, leagueKey: string) {
   return justTeams;
 }
 
-export async function getTeamStats(accessToken: string, teamKey: string) {
+export async function getTeamStats(
+  accessToken: string,
+  teamKey: string
+): Promise<YahooTeamStatsResponse> {
   const url = `${YAHOO_FANTASY_API_BASE}/team/${teamKey}/stats?format=json`;
   const response = await fetch(url, {
     headers: {
@@ -101,14 +105,7 @@ export async function getTeamStats(accessToken: string, teamKey: string) {
     );
   }
 
-  const data = await response.json();
-  const teamData = data.fantasy_content?.team;
-  const team = Array.isArray(teamData) ? teamData[0] : undefined;
-  if (!team) {
-    throw new Error("Team not found in response");
-  }
-
-  return team;
+  return await response.json();
 }
 
 export async function getTeamRoster(accessToken: string, teamKey: string) {
@@ -134,4 +131,45 @@ export async function getTeamRoster(accessToken: string, teamKey: string) {
   }
 
   return team;
+}
+
+export async function getLeagueSettings(
+  accessToken: string,
+  leagueKey: string
+) {
+  const url = `${YAHOO_FANTASY_API_BASE}/league/${leagueKey}/settings?format=json`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Yahoo API error: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+  return data.fantasy_content.league[1].settings[0];
+}
+
+export async function getTeamMatchups(accessToken: string, teamKey: string) {
+  const url = `${YAHOO_FANTASY_API_BASE}/team/${teamKey}/matchups?format=json`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Yahoo API error: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+  return data.fantasy_content.team[1].matchups[0];
 }

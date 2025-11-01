@@ -1,5 +1,3 @@
-// Yahoo Fantasy Sports API Types
-
 export interface YahooUsersGamesLeaguesResponse {
   fantasy_content: FantasyContent;
 }
@@ -86,5 +84,24 @@ export interface TeamsContainer {
 export interface YahooLeagueTeamsResponse {
   fantasy_content: {
     league: [League, TeamsContainer];
+  };
+}
+
+export interface YahooTeamStatsResponse {
+  fantasy_content: {
+    team: [TeamArray, TeamStats];
+  };
+}
+
+export interface TeamStats {
+  team_stats: {
+    stats: Array<Stat>;
+  };
+}
+
+export interface Stat {
+  stat: {
+    stat_id: string;
+    value: string;
   };
 }

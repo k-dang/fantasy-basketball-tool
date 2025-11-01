@@ -1,18 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import type { League } from "@/types/yahoo";
+import type { League, Stat } from "@/types/yahoo";
 
 interface LeaguesResponse {
-  leagues: League[];
+  leagues: Array<League>;
 }
 
 interface TeamsResponse {
   teams: Array<{ team_key: string; name: string }>;
 }
 
-// interface TeamStatsResponse {
-//   team: Team;
-// }
+interface TeamStatsResponse {
+  stats: Array<Stat>;
+}
 
 /**
  * Hook to fetch user's leagues

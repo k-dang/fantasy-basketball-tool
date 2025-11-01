@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getTeamStats, getTeamRoster } from '@/lib/yahoo-api';
-import { getAccessTokenFromCookies, updateTokenCookies } from '@/lib/api-utils';
+import { NextRequest, NextResponse } from "next/server";
+import { getTeamStats } from "@/lib/yahoo-api";
+import { getAccessTokenFromCookies, updateTokenCookies } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
@@ -10,36 +10,25 @@ export async function GET(
     const tokenResult = await getAccessTokenFromCookies();
 
     if (!tokenResult.accessToken) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const { teamKey: paramTeamKey } = await params;
     const searchParams = request.nextUrl.searchParams;
-    const teamKey = searchParams.get('teamKey') || paramTeamKey;
+    const teamKey = searchParams.get("teamKey") || paramTeamKey;
 
     if (!teamKey) {
       return NextResponse.json(
-        { error: 'Team key is required' },
+        { error: "Team key is required" },
         { status: 400 }
       );
     }
 
-    // Fetch both team stats and roster
-    const [teamStats, teamRoster] = await Promise.all([
-      getTeamStats(tokenResult.accessToken, teamKey),
-      getTeamRoster(tokenResult.accessToken, teamKey),
-    ]);
+    // Fetch team stats
+    const teamStats = await getTeamStats(tokenResult.accessToken, teamKey);
+    const stats = teamStats.fantasy_content.team[1].team_stats.stats;
 
-    // Merge roster players into team stats
-    const teamWithRoster = {
-      ...teamStats,
-      players: teamRoster.players || [],
-    };
-
-    const response = NextResponse.json({ team: teamWithRoster });
+    const response = NextResponse.json({ stats });
 
     // Update cookies if token was refreshed
     if (tokenResult.refreshTokens) {
@@ -48,11 +37,10 @@ export async function GET(
 
     return response;
   } catch (error) {
-    console.error('Error fetching team stats:', error);
+    console.error("Error fetching team stats:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch team stats' },
+      { error: "Failed to fetch team stats" },
       { status: 500 }
     );
   }
 }
-
