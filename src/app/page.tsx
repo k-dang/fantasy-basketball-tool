@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AuthButton } from '@/components/AuthButton';
-import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AuthButton } from "@/components/AuthButton";
+import { useAuth } from "@/lib/hooks";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -12,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      router.push('/dashboard');
+      router.push("/dashboard");
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -33,7 +39,8 @@ export default function Home() {
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Fantasy Basketball Tool</CardTitle>
             <CardDescription>
-              Sign in with Yahoo to view your fantasy basketball league statistics
+              Sign in with Yahoo to view your fantasy basketball league
+              statistics
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
