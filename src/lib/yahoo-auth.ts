@@ -87,8 +87,6 @@ export async function exchangeCodeForTokens(
     throw new Error("Failed to obtain tokens from Yahoo");
   }
 
-
-  console.log('tokenSet', tokenSet);
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
