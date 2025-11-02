@@ -1,25 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { AuthButton } from "@/components/AuthButton";
 import { WeekByWeekStats } from "@/components/WeekByWeekStats";
 import { LeagueSelector } from "@/components/LeagueSelector";
 import { TeamSelector } from "@/components/TeamSelector";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { useLeagues, useTeams, useTeamMatchups, useAuth } from "@/lib/hooks";
+import { useLeagues, useTeams, useTeamMatchups } from "@/lib/hooks";
 import type { League } from "@/types/yahoo";
+import { SignoutButton } from "@/components/SignoutButton";
 
 export default function DashboardPage() {
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const {
     data: leaguesData,
     isLoading: loadingLeagues,
     error: leaguesError,
-    refetch: refetchLeagues,
   } = useLeagues();
 
   const {
@@ -38,55 +36,19 @@ export default function DashboardPage() {
   const teams = teamsData?.teams || [];
   const matchups = teamMatchupsData?.matchups || [];
 
-  if (authLoading) {
-    return (
-      <LoadingState
-        message="Checking authentication..."
-        fullScreen
-      />
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Fantasy Basketball Dashboard</h1>
-          <AuthButton />
-        </div>
-        <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">
-            Please sign in to view your leagues.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   if (loadingLeagues) {
-    return (
-      <LoadingState
-        message="Loading leagues..."
-        fullScreen
-      />
-    );
+    return <LoadingState message="Loading..." fullScreen />;
   }
 
   if (leaguesError && !leagues.length) {
-    return (
-      <ErrorState
-        error={leaguesError}
-        onRetry={() => refetchLeagues()}
-        fullScreen
-      />
-    );
+    return <ErrorState error={leaguesError} fullScreen />;
   }
 
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Fantasy Basketball Dashboard</h1>
-        <AuthButton />
+        <SignoutButton />
       </div>
 
       <div className="space-y-6">
@@ -99,7 +61,6 @@ export default function DashboardPage() {
           }}
           isLoading={loadingLeagues}
           error={leaguesError}
-          onRetry={() => refetchLeagues()}
         />
 
         {selectedLeague && (

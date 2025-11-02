@@ -19,7 +19,6 @@ interface LeagueSelectorProps {
   onSelect: (league: League) => void;
   isLoading?: boolean;
   error?: Error | null;
-  onRetry?: () => void;
 }
 
 export function LeagueSelector({
@@ -28,32 +27,18 @@ export function LeagueSelector({
   onSelect,
   isLoading = false,
   error = null,
-  onRetry,
 }: LeagueSelectorProps) {
   if (isLoading) {
-    return (
-      <LoadingState
-        title="Select League"
-        message="Loading leagues..."
-      />
-    );
+    return <LoadingState title="Select League" message="Loading leagues..." />;
   }
 
   if (error) {
-    return (
-      <ErrorState
-        title="Select League"
-        error={error}
-        onRetry={onRetry}
-      />
-    );
+    return <ErrorState title="Select League" error={error} />;
   }
 
   if (leagues.length === 0) {
     return (
-      <EmptyState
-        message="No basketball leagues found. Make sure you're part of a Yahoo Fantasy Basketball league."
-      />
+      <EmptyState message="No basketball leagues found. Make sure you're part of a Yahoo Fantasy Basketball league." />
     );
   }
 
@@ -86,4 +71,3 @@ export function LeagueSelector({
     </Card>
   );
 }
-

@@ -87,11 +87,14 @@ export async function exchangeCodeForTokens(
     throw new Error("Failed to obtain tokens from Yahoo");
   }
 
+
+  console.log('tokenSet', tokenSet);
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
-    expiresAt:
-      typeof tokenSet.expires_at === "number" ? tokenSet.expires_at : undefined,
+    expiresAt: tokenSet.expires_in
+      ? Math.floor(Date.now() / 1000) + tokenSet.expires_in
+      : undefined,
   };
 }
 
@@ -110,7 +113,8 @@ export async function refreshAccessToken(refreshToken: string) {
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token || refreshToken,
-    expiresAt:
-      typeof tokenSet.expires_at === "number" ? tokenSet.expires_at : undefined,
+    expiresAt: tokenSet.expires_in
+      ? Math.floor(Date.now() / 1000) + tokenSet.expires_in
+      : undefined,
   };
 }

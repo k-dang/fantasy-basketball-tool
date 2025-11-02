@@ -13,7 +13,6 @@ export async function GET() {
     // Get authorization URL with PKCE
     const authUrl = await getAuthorizationUrl(state, codeChallenge);
 
-    // Create response with redirect
     const response = NextResponse.redirect(authUrl);
 
     // Store state and code verifier in cookies for validation in callback
