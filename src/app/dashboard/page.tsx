@@ -9,6 +9,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { useLeagues, useTeams, useTeamMatchups } from "@/lib/hooks";
 import type { League } from "@/types/yahoo";
 import { SignoutButton } from "@/components/SignoutButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DashboardPage() {
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
@@ -51,35 +52,48 @@ export default function DashboardPage() {
         <SignoutButton />
       </div>
 
-      <div className="space-y-6">
-        <LeagueSelector
-          leagues={leagues}
-          selectedLeague={selectedLeague}
-          onSelect={(league) => {
-            setSelectedLeague(league);
-            setSelectedTeam(null);
-          }}
-          isLoading={loadingLeagues}
-          error={leaguesError}
-        />
-
-        {selectedLeague && (
-          <TeamSelector
-            teams={teams}
-            selectedTeam={selectedTeam}
-            onSelect={setSelectedTeam}
-            isLoading={loadingTeams}
-            error={teamsError}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
+          <LeagueSelector
+            leagues={leagues}
+            selectedLeague={selectedLeague}
+            onSelect={(league) => {
+              setSelectedLeague(league);
+              setSelectedTeam(null);
+            }}
+            isLoading={loadingLeagues}
+            error={leaguesError}
           />
-        )}
 
-        {selectedTeam && (
-          <WeekByWeekStats
-            matchups={matchups}
-            isLoading={loadingMatchups}
-            error={matchupsError}
-          />
-        )}
+          {selectedLeague && (
+            <TeamSelector
+              teams={teams}
+              selectedTeam={selectedTeam}
+              onSelect={setSelectedTeam}
+              isLoading={loadingTeams}
+              error={teamsError}
+            />
+          )}
+        </div>
+
+        <div className="lg:col-span-2">
+          {selectedTeam && (
+            <Tabs defaultValue="weekly-stats">
+              <TabsList>
+                <TabsTrigger value="weekly-stats">
+                  Weekly Stats
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="weekly-stats">
+                <WeekByWeekStats
+                  matchups={matchups}
+                  isLoading={loadingMatchups}
+                  error={matchupsError}
+                />
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
       </div>
     </div>
   );
