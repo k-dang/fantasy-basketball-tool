@@ -10,10 +10,20 @@ import { useLeagues, useTeams, useTeamMatchups } from "@/lib/hooks";
 import type { League } from "@/types/yahoo";
 import { SignoutButton } from "@/components/SignoutButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  loadLeagueSelection,
+  loadTeamSelection,
+  saveLeagueSelection,
+  saveTeamSelection,
+} from "@/lib/storage-utils";
 
 export default function DashboardPage() {
-  const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [selectedLeague, setSelectedLeague] = useState<League | null>(
+    loadLeagueSelection()
+  );
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(
+    loadTeamSelection()
+  );
 
   const {
     data: leaguesData,
@@ -37,6 +47,17 @@ export default function DashboardPage() {
   const teams = teamsData?.teams || [];
   const matchups = teamMatchupsData?.matchups || [];
 
+  const handleLeagueSelect = (league: League) => {
+    saveLeagueSelection(league);
+    setSelectedLeague(league);
+    setSelectedTeam(null);
+  };
+
+  const handleTeamSelect = (team: string) => {
+    saveTeamSelection(team);
+    setSelectedTeam(team);
+  };
+
   if (loadingLeagues) {
     return <LoadingState message="Loading..." fullScreen />;
   }
@@ -57,10 +78,7 @@ export default function DashboardPage() {
           <LeagueSelector
             leagues={leagues}
             selectedLeague={selectedLeague}
-            onSelect={(league) => {
-              setSelectedLeague(league);
-              setSelectedTeam(null);
-            }}
+            onSelect={handleLeagueSelect}
             isLoading={loadingLeagues}
             error={leaguesError}
           />
@@ -69,7 +87,7 @@ export default function DashboardPage() {
             <TeamSelector
               teams={teams}
               selectedTeam={selectedTeam}
-              onSelect={setSelectedTeam}
+              onSelect={handleTeamSelect}
               isLoading={loadingTeams}
               error={teamsError}
             />
@@ -80,9 +98,7 @@ export default function DashboardPage() {
           {selectedTeam && (
             <Tabs defaultValue="weekly-stats">
               <TabsList>
-                <TabsTrigger value="weekly-stats">
-                  Weekly Stats
-                </TabsTrigger>
+                <TabsTrigger value="weekly-stats">Weekly Stats</TabsTrigger>
               </TabsList>
               <TabsContent value="weekly-stats">
                 <WeekByWeekStats
