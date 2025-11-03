@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { League, Stat, ParsedMatchup } from "@/types/yahoo";
+import type { League, StatContainer, ParsedMatchup } from "@/types/yahoo";
 
 interface LeaguesResponse {
   leagues: Array<League>;
@@ -10,7 +10,7 @@ interface TeamsResponse {
 }
 
 interface TeamStatsResponse {
-  stats: Array<Stat>;
+  stats: Array<StatContainer>;
 }
 
 interface TeamMatchupsResponse {
@@ -77,15 +77,24 @@ export function useTeamStats(teamKey: string | null) {
   });
 }
 
-export function useTeamMatchups(teamKey: string | null) {
+export function useTeamMatchups(
+  leagueKey: string | null,
+  teamKey: string | null
+) {
   return useQuery<TeamMatchupsResponse, Error>({
-    queryKey: ["teamMatchups", teamKey],
+    queryKey: ["teamMatchups", leagueKey, teamKey],
     queryFn: async () => {
       if (!teamKey) {
         throw new Error("Team key is required");
       }
 
-      const response = await fetch(`/api/teams/${teamKey}/matchups`);
+      if (!leagueKey) {
+        throw new Error("League key is required");
+      }
+
+      const response = await fetch(
+        `/api/leagues/${leagueKey}/teams/${teamKey}/matchups`
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -96,7 +105,7 @@ export function useTeamMatchups(teamKey: string | null) {
       const data = await response.json();
       return data;
     },
-    enabled: !!teamKey,
+    enabled: !!leagueKey && !!teamKey,
     retry: false,
   });
 }

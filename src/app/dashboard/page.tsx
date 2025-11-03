@@ -30,7 +30,7 @@ export default function DashboardPage() {
     data: teamMatchupsData,
     isLoading: loadingMatchups,
     error: matchupsError,
-  } = useTeamMatchups(selectedTeam);
+  } = useTeamMatchups(selectedLeague?.league_key ?? null, selectedTeam);
 
   const leagues = leaguesData?.leagues || [];
   const teams = teamsData?.teams || [];

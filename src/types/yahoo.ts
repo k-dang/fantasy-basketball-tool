@@ -95,15 +95,21 @@ export interface YahooTeamStatsResponse {
 
 export interface TeamStats {
   team_stats: {
-    stats: Array<Stat>;
+    stats: Array<StatContainer>;
   };
 }
 
+export interface StatContainer {
+  stat: Stat;
+}
+
 export interface Stat {
-  stat: {
-    stat_id: string;
-    value: string;
-  };
+  stat_id: string;
+  value: string;
+}
+
+export interface ExtendedStat extends Stat {
+  display_name: string;
 }
 
 export interface YahooTeamMatchupsResponse {
@@ -124,44 +130,66 @@ export type MatchupsContainer = Omit<
 };
 
 export interface MatchupContainer {
-  matchup: Matchup[];
+  matchup: Matchup;
 }
 
 export interface Matchup {
-  week?: string;
-  week_start?: string;
-  week_end?: string;
-  status?: string;
-  is_playoffs?: string;
-  is_consolation?: string;
-  is_tied?: string;
-  winner_team_key?: string;
-  teams?: Omit<Record<string, MatchupTeamContainer>, "count"> & {
-    count: number;
-  };
+  week: number | string;
+  week_start: string;
+  week_end: string;
+  status: string;
+  winner_team_key: string;
+  0: MatchupTeamContainer;
 }
 
 export interface MatchupTeamContainer {
+  teams: MatchupTeam;
+}
+
+export interface MatchupTeam {
+  0: MatchupTeamStatsContainer;
+  1: MatchupTeamStatsContainer;
+}
+
+export interface MatchupTeamStatsContainer {
   team: [TeamArray, MatchupTeamStats];
 }
 
 export interface MatchupTeamStats {
   team_stats: {
-    coverage_type: string;
-    week?: string;
-    stats: Array<Stat>;
+    stats: Array<StatContainer>;
   };
 }
 
 export interface ParsedMatchup {
-  week: string;
-  week_start?: string;
-  week_end?: string;
-  status?: string;
-  is_playoffs?: boolean;
-  is_consolation?: boolean;
-  is_tied?: boolean;
-  winner_team_key?: string;
-  team_stats?: Stat[];
-  opponent_stats?: Stat[];
+  week: number;
+  week_start: string;
+  week_end: string;
+  status: string;
+  winner_team_key: string;
+  team_stats?: Array<{ stat: ExtendedStat }>;
+  opponent_stats?: Array<{ stat: ExtendedStat }>;
+}
+
+export interface YahooLeagueSettingsResponse {
+  fantasy_content: {
+    league: [
+      League,
+      {
+        settings: Array<{
+          stat_categories: {
+            stats: Array<{
+              stat: StatCategory;
+            }>;
+          };
+        }>;
+      }
+    ];
+  };
+}
+
+export interface StatCategory {
+  stat_id: string;
+  name: string;
+  display_name: string;
 }

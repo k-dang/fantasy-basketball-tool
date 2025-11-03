@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTeamMatchups, parseMatchups } from "@/lib/yahoo-api";
+import {
+  getLeagueSettings,
+  getStatCategories,
+  getTeamMatchups,
+  parseMatchups,
+} from "@/lib/yahoo-api";
 import { getAccessTokenFromCookies, updateTokenCookies } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ teamKey: string }> }
+  { params }: { params: Promise<{ leagueKey: string; teamKey: string }> }
 ) {
   try {
     const tokenResult = await getAccessTokenFromCookies();
@@ -13,9 +18,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { teamKey: paramTeamKey } = await params;
-    const searchParams = request.nextUrl.searchParams;
-    const teamKey = searchParams.get("teamKey") || paramTeamKey;
+    const { leagueKey, teamKey } = await params;
 
     if (!teamKey) {
       return NextResponse.json(
@@ -24,9 +27,21 @@ export async function GET(
       );
     }
 
-    // Fetch team matchups
-    const matchupsData = await getTeamMatchups(tokenResult.accessToken, teamKey);
-    const parsedMatchups = parseMatchups(matchupsData, teamKey);
+    if (!leagueKey) {
+      return NextResponse.json(
+        { error: "League key is required" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch league settings and team matchups in parallel
+    const [leagueSettings, matchupsData] = await Promise.all([
+      getLeagueSettings(tokenResult.accessToken, leagueKey),
+      getTeamMatchups(tokenResult.accessToken, teamKey),
+    ]);
+
+    const statCategories = getStatCategories(leagueSettings);
+    const parsedMatchups = parseMatchups(matchupsData, statCategories);
 
     const response = NextResponse.json({ matchups: parsedMatchups });
 
@@ -44,4 +59,3 @@ export async function GET(
     );
   }
 }
-

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getTeams } from '@/lib/yahoo-api';
-import { getAccessTokenFromCookies, updateTokenCookies } from '@/lib/api-utils';
+import { NextRequest, NextResponse } from "next/server";
+import { getTeams } from "@/lib/yahoo-api";
+import { getAccessTokenFromCookies, updateTokenCookies } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
@@ -10,10 +10,7 @@ export async function GET(
     const tokenResult = await getAccessTokenFromCookies();
 
     if (!tokenResult.accessToken) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const { leagueKey } = await params;
@@ -28,11 +25,10 @@ export async function GET(
 
     return response;
   } catch (error) {
-    console.error('Error fetching teams:', error);
+    console.error("Error fetching teams:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch teams' },
+      { error: "Failed to fetch teams" },
       { status: 500 }
     );
   }
 }
-
