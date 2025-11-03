@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { WeekByWeekStats } from "@/components/WeekByWeekStats";
+import { WeeklyStats } from "@/components/WeeklyStats";
 import { LeagueSelector } from "@/components/LeagueSelector";
 import { TeamSelector } from "@/components/TeamSelector";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 <TabsTrigger value="weekly-stats">Weekly Stats</TabsTrigger>
               </TabsList>
               <TabsContent value="weekly-stats">
-                <WeekByWeekStats
+                <WeeklyStats
                   matchups={matchups}
                   isLoading={loadingMatchups}
                   error={matchupsError}

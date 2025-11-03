@@ -18,59 +18,28 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { ParsedMatchup, StatContainer } from "@/types/yahoo";
+import type { ParsedMatchup } from "@/types/yahoo";
+import { StatCell } from "@/components/StatCell";
 
-interface WeekByWeekStatsProps {
+interface WeeklyStatsProps {
   matchups: ParsedMatchup[];
   isLoading?: boolean;
   error?: Error | null;
 }
 
-// Get stat value by stat_id
-function getStatValue(
-  stats: StatContainer[] | undefined,
-  statId: string
-): string {
-  if (!stats) return "-";
-  const stat = stats.find((s) => s.stat.stat_id === statId);
-  return stat?.stat.value || "-";
-}
-
-// Format percentage values
-function formatPercentage(value: string): string {
-  if (value === "-") return "-";
-  const num = parseFloat(value);
-  if (isNaN(num)) return value;
-  return `${(num * 100).toFixed(1)}%`;
-}
-
-// Format regular number
-function formatNumber(value: string): string {
-  if (value === "-") return "-";
-  const num = parseFloat(value);
-  if (isNaN(num)) return value;
-  return num.toFixed(1);
-}
-
-export function WeekByWeekStats({
-  matchups,
-  isLoading,
-  error,
-}: WeekByWeekStatsProps) {
+export function WeeklyStats({ matchups, isLoading, error }: WeeklyStatsProps) {
   if (isLoading) {
-    return (
-      <LoadingState title="Week-by-Week Stats" message="Loading matchups..." />
-    );
+    return <LoadingState title="Weekly Stats" message="Loading matchups..." />;
   }
 
   if (error) {
-    return <ErrorState title="Week-by-Week Stats" error={error} />;
+    return <ErrorState title="Weekly Stats" error={error} />;
   }
 
   if (!matchups || matchups.length === 0) {
     return (
       <EmptyState
-        title="Week-by-Week Stats"
+        title="Weekly Stats"
         description="No matchup data available"
         message="No matchups found for this team."
       />
@@ -80,7 +49,7 @@ export function WeekByWeekStats({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Week-by-Week Stats</CardTitle>
+        <CardTitle>Weekly Stats</CardTitle>
         <CardDescription>
           Team statistics for each week of the season
         </CardDescription>
@@ -106,20 +75,9 @@ export function WeekByWeekStats({
                   <TableCell className="sticky left-0 bg-background z-10 font-medium">
                     {matchup.week}
                   </TableCell>
-                  {matchup.team_stats?.map((stat) => {
-                    const value = getStatValue(
-                      matchup.team_stats,
-                      stat.stat.stat_id
-                    );
-                    const formattedValue = stat.stat.display_name.includes("%")
-                      ? formatPercentage(value)
-                      : formatNumber(value);
-                    return (
-                      <TableCell key={stat.stat.stat_id}>
-                        {formattedValue}
-                      </TableCell>
-                    );
-                  })}
+                  {matchup.team_stats?.map((stat) => (
+                    <StatCell key={stat.stat.stat_id} stat={stat} matchup={matchup} />
+                  ))}
                 </TableRow>
               ))}
             </TableBody>
