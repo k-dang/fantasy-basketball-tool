@@ -11,27 +11,26 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-
-interface Team {
-  team_key: string;
-  name: string;
-}
+import { useTeams } from "@/lib/hooks";
 
 interface TeamSelectorProps {
-  teams: Team[];
+  leagueKey: string | null;
   selectedTeam: string | null;
   onSelect: (teamKey: string) => void;
-  isLoading?: boolean;
-  error?: Error | null;
 }
 
 export function TeamSelector({
-  teams,
+  leagueKey,
   selectedTeam,
   onSelect,
-  isLoading = false,
-  error = null,
 }: TeamSelectorProps) {
+  const {
+    data: teamsData,
+    isLoading,
+    error,
+  } = useTeams(leagueKey);
+
+  const teams = teamsData?.teams || [];
   if (isLoading) {
     return (
       <LoadingState

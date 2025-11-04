@@ -18,16 +18,22 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { ParsedMatchup } from "@/types/yahoo";
+import { useTeamMatchups } from "@/lib/hooks";
 import { StatCell } from "@/components/StatCell";
 
 interface WeeklyStatsProps {
-  matchups: ParsedMatchup[];
-  isLoading?: boolean;
-  error?: Error | null;
+  leagueKey: string | null;
+  teamKey: string | null;
 }
 
-export function WeeklyStats({ matchups, isLoading, error }: WeeklyStatsProps) {
+export function WeeklyStats({ leagueKey, teamKey }: WeeklyStatsProps) {
+  const {
+    data: teamMatchupsData,
+    isLoading,
+    error,
+  } = useTeamMatchups(leagueKey, teamKey);
+
+  const matchups = teamMatchupsData?.matchups || [];
   if (isLoading) {
     return <LoadingState title="Weekly Stats" message="Loading matchups..." />;
   }
@@ -76,7 +82,11 @@ export function WeeklyStats({ matchups, isLoading, error }: WeeklyStatsProps) {
                     {matchup.week}
                   </TableCell>
                   {matchup.team_stats?.map((stat) => (
-                    <StatCell key={stat.stat.stat_id} stat={stat} matchup={matchup} />
+                    <StatCell
+                      key={stat.stat.stat_id}
+                      stat={stat}
+                      matchup={matchup}
+                    />
                   ))}
                 </TableRow>
               ))}

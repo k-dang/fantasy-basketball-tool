@@ -12,22 +12,25 @@ import type { League } from "@/types/yahoo";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useLeagues } from "@/lib/hooks";
 
 interface LeagueSelectorProps {
-  leagues: League[];
   selectedLeague: League | null;
   onSelect: (league: League) => void;
-  isLoading?: boolean;
-  error?: Error | null;
 }
 
 export function LeagueSelector({
-  leagues,
   selectedLeague,
   onSelect,
-  isLoading = false,
-  error = null,
 }: LeagueSelectorProps) {
+  const {
+    data: leaguesData,
+    isLoading,
+    error,
+  } = useLeagues();
+
+  const leagues = leaguesData?.leagues || [];
+
   if (isLoading) {
     return <LoadingState title="Select League" message="Loading leagues..." />;
   }

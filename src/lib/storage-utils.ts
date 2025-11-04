@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
  * Save the selected league to local storage
  */
 export function saveLeagueSelection(league: League | null): void {
+  if (typeof window === "undefined") return;
   try {
     if (league === null) {
       localStorage.removeItem(STORAGE_KEYS.SELECTED_LEAGUE);
@@ -32,6 +33,7 @@ export function saveLeagueSelection(league: League | null): void {
  * Load the selected league from local storage
  */
 export function loadLeagueSelection(): League | null {
+  if (typeof window === "undefined") return null;
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.SELECTED_LEAGUE);
     if (!stored) return null;
@@ -58,6 +60,7 @@ export function loadLeagueSelection(): League | null {
  * Save the selected team key to local storage
  */
 export function saveTeamSelection(teamKey: string | null): void {
+  if (typeof window === "undefined") return;
   try {
     if (teamKey === null) {
       localStorage.removeItem(STORAGE_KEYS.SELECTED_TEAM);
@@ -73,6 +76,7 @@ export function saveTeamSelection(teamKey: string | null): void {
  * Load the selected team key from local storage
  */
 export function loadTeamSelection(): string | null {
+  if (typeof window === "undefined") return null;
   try {
     return localStorage.getItem(STORAGE_KEYS.SELECTED_TEAM);
   } catch (error) {
@@ -85,6 +89,7 @@ export function loadTeamSelection(): string | null {
  * Clear all saved selections from local storage
  */
 export function clearSelections(): void {
+  if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(STORAGE_KEYS.SELECTED_LEAGUE);
     localStorage.removeItem(STORAGE_KEYS.SELECTED_TEAM);
