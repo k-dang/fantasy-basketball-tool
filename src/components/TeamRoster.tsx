@@ -95,6 +95,7 @@ export function TeamRoster({ leagueKey, teamKey }: TeamRosterProps) {
                           fill
                           sizes="48px"
                           className="rounded-full object-cover object-top"
+                          unoptimized
                         />
                       </div>
                       <span>{player.name || "Unknown Player"}</span>
