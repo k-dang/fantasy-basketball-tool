@@ -8,6 +8,7 @@ import type {
   StatCategory,
   YahooTeamRosterPlayersStatsResponse,
   StatContainer,
+  PlayerArrayElement,
 } from "@/types/yahoo";
 
 const YAHOO_FANTASY_API_BASE = "https://fantasysports.yahooapis.com/fantasy/v2";
@@ -156,8 +157,9 @@ export async function getTeamRosterPlayers(
   const playersSubset = Object.values(playersWithoutCount).map(({ player }) => {
     let name: string | undefined;
     let image_url: string | undefined;
+    let playerStats: StatContainer[] = [];
 
-    for (const obj of player[0]) {
+    for (const obj of player[0] as Array<PlayerArrayElement>) {
       if (obj.name && typeof obj.name.full === "string") {
         name = obj.name.full;
       }
@@ -166,7 +168,21 @@ export async function getTeamRosterPlayers(
       }
     }
 
-    const playerStats = player[3].player_stats.stats;
+    // Find the object with player_stats field
+    for (const item of player) {
+      if (
+        item &&
+        typeof item === "object" &&
+        "player_stats" in item &&
+        item.player_stats &&
+        typeof item.player_stats === "object" &&
+        "stats" in item.player_stats
+      ) {
+        playerStats = item.player_stats.stats as StatContainer[];
+        break;
+      }
+    }
+
     const stats = playerStats.map((stat) => ({
       stat_id: stat.stat.stat_id,
       value: stat.stat.value,

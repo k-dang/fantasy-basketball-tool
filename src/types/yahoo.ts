@@ -182,10 +182,9 @@ export interface YahooTeamRosterPlayersStatsResponse {
                   string,
                   {
                     player: [
-                      Array<PlayerArrayElement>,
-                      unknown,
-                      unknown,
-                      { player_stats: { stats: Array<StatContainer> } }
+                      | Array<PlayerArrayElement>
+                      | { player_stats: { stats: Array<StatContainer> } }
+                      | unknown
                     ];
                   }
                 >
