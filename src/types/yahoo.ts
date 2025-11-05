@@ -169,3 +169,36 @@ export interface StatCategory {
   name: string;
   display_name: string;
 }
+
+export interface YahooTeamRosterPlayersStatsResponse {
+  fantasy_content: {
+    team: [
+      Array<TeamArrayElement>,
+      {
+        roster: {
+          0: {
+            players:
+              | Record<
+                  string,
+                  {
+                    player: [
+                      Array<PlayerArrayElement>,
+                      unknown,
+                      unknown,
+                      { player_stats: { stats: Array<StatContainer> } }
+                    ];
+                  }
+                >
+              | { count: number };
+          };
+        };
+      }
+    ];
+  };
+}
+
+export type PlayerArrayElement = {
+  name?: { full: string };
+  headshot?: { url: string };
+  image_url?: string;
+} & Record<string, unknown>;

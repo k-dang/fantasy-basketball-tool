@@ -109,3 +109,44 @@ export function useTeamMatchups(
     retry: false,
   });
 }
+
+interface TeamRosterResponse {
+  roster: Array<{
+    name: string | undefined;
+    image_url: string | undefined;
+    stats: Array<{ stat_id: string; value: string }>;
+  }>;
+}
+
+export function useTeamRoster(
+  leagueKey: string | null,
+  teamKey: string | null
+) {
+  return useQuery<TeamRosterResponse, Error>({
+    queryKey: ["teamRoster", leagueKey, teamKey],
+    queryFn: async () => {
+      if (!teamKey) {
+        throw new Error("Team key is required");
+      }
+
+      if (!leagueKey) {
+        throw new Error("League key is required");
+      }
+
+      const response = await fetch(
+        `/api/leagues/${leagueKey}/teams/${teamKey}/roster`
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch team roster: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!leagueKey && !!teamKey,
+    retry: false,
+  });
+}

@@ -6,6 +6,8 @@ import type {
   ParsedMatchup,
   YahooLeagueSettingsResponse,
   StatCategory,
+  YahooTeamRosterPlayersStatsResponse,
+  StatContainer,
 } from "@/types/yahoo";
 
 const YAHOO_FANTASY_API_BASE = "https://fantasysports.yahooapis.com/fantasy/v2";
@@ -112,8 +114,17 @@ export async function getTeamStats(
   return await response.json();
 }
 
-export async function getTeamRoster(accessToken: string, teamKey: string) {
-  const url = `${YAHOO_FANTASY_API_BASE}/team/${teamKey}/roster/players/stats?format=json`;
+export async function getTeamRosterPlayersStats(
+  accessToken: string,
+  teamKey: string,
+  week?: number
+): Promise<YahooTeamRosterPlayersStatsResponse> {
+  let url = `${YAHOO_FANTASY_API_BASE}/team/${teamKey}/roster/players/stats`;
+  if (typeof week === "number") {
+    url += `;type=week;week=${week}`;
+  }
+  url += `?format=json`;
+
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -127,14 +138,47 @@ export async function getTeamRoster(accessToken: string, teamKey: string) {
     );
   }
 
-  const data = await response.json();
-  const teamData = data.fantasy_content?.team;
-  const team = Array.isArray(teamData) ? teamData[0] : undefined;
-  if (!team) {
-    throw new Error("Team not found in response");
-  }
+  return await response.json();
+}
 
-  return team;
+export async function getTeamRosterPlayers(
+  accessToken: string,
+  teamKey: string,
+  week?: number
+) {
+  const data = await getTeamRosterPlayersStats(accessToken, teamKey, week);
+
+  const players = data.fantasy_content.team[1].roster[0].players;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { count: _1, ...playersWithoutCount } = players;
+
+  const playersSubset = Object.values(playersWithoutCount).map(({ player }) => {
+    let name: string | undefined;
+    let image_url: string | undefined;
+
+    for (const obj of player[0]) {
+      if (obj.name && typeof obj.name.full === "string") {
+        name = obj.name.full;
+      }
+      if (obj.image_url && typeof obj.image_url === "string") {
+        image_url = obj.image_url;
+      }
+    }
+
+    const playerStats = player[3].player_stats.stats;
+    const stats = playerStats.map((stat) => ({
+      stat_id: stat.stat.stat_id,
+      value: stat.stat.value,
+    }));
+
+    return {
+      name: name,
+      image_url: image_url,
+      stats: stats,
+    };
+  });
+  return playersSubset;
 }
 
 export async function getLeagueSettings(
