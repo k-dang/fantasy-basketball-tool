@@ -61,7 +61,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-2">
-          {selectedTeam && (
+          {selectedTeam && selectedLeague && (
             <Tabs defaultValue="weekly-stats">
               <TabsList>
                 <TabsTrigger value="weekly-stats">Weekly Stats</TabsTrigger>
@@ -75,7 +75,7 @@ export default function DashboardPage() {
               </TabsContent>
               <TabsContent value="roster">
                 <TeamRoster
-                  leagueKey={selectedLeague?.league_key ?? null}
+                  league={selectedLeague}
                   teamKey={selectedTeam}
                 />
               </TabsContent>

@@ -18,28 +18,34 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useTeamRoster } from "@/lib/hooks";
+import { useLeagues, useTeamRoster } from "@/lib/hooks";
 import Image from "next/image";
+import type { League } from "@/types/yahoo";
 
 interface TeamRosterProps {
-  leagueKey: string | null;
+  league: League;
   teamKey: string | null;
 }
 
-export function TeamRoster({ leagueKey, teamKey }: TeamRosterProps) {
+export function TeamRoster({ league, teamKey }: TeamRosterProps) {
   const {
     data: rosterData,
     isLoading,
     error,
-  } = useTeamRoster(leagueKey, teamKey);
+  } = useTeamRoster(league.league_key, teamKey);
+  const {
+    data: leaguesData,
+    isLoading: leaguesLoading,
+    error: leaguesError,
+  } = useLeagues();
 
   const roster = rosterData?.roster || [];
 
-  if (isLoading) {
+  if (isLoading || leaguesLoading) {
     return <LoadingState title="Roster" message="Loading roster..." />;
   }
 
-  if (error) {
+  if (error || leaguesError) {
     return <ErrorState title="Roster" error={error} />;
   }
 
@@ -53,21 +59,23 @@ export function TeamRoster({ leagueKey, teamKey }: TeamRosterProps) {
     );
   }
 
-  // Get all unique stat IDs from all players
-  const allStatIds = new Set<string>();
-  roster.forEach((player) => {
-    player.stats?.forEach((stat) => {
-      allStatIds.add(stat.stat_id);
-    });
-  });
-  const statIds = Array.from(allStatIds).sort();
+  // Use the order from the first player's stats (same as WeeklyStats uses first matchup)
+  const stats =
+    roster[0]?.stats?.map((stat) => ({
+      stat_id: stat.stat_id,
+      display_name: stat.display_name,
+    })) || [];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Roster</CardTitle>
         <CardDescription>
-          Current team roster with player statistics
+          Current team roster with player statistics for week{" "}
+          {
+            leaguesData?.leagues.find((l) => l.league_key === league.league_key)
+              ?.current_week
+          }
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -78,8 +86,8 @@ export function TeamRoster({ leagueKey, teamKey }: TeamRosterProps) {
                 <TableHead className="sticky left-0 bg-background z-10">
                   Player
                 </TableHead>
-                {statIds.map((statId) => (
-                  <TableHead key={statId}>{statId}</TableHead>
+                {stats.map((stat) => (
+                  <TableHead key={stat.stat_id}>{stat.display_name}</TableHead>
                 ))}
               </TableRow>
             </TableHeader>
@@ -101,9 +109,9 @@ export function TeamRoster({ leagueKey, teamKey }: TeamRosterProps) {
                       <span>{player.name || "Unknown Player"}</span>
                     </div>
                   </TableCell>
-                  {statIds.map((statId) => {
+                  {stats.map((stat) => {
                     const playerStat = player.stats?.find(
-                      (s) => s.stat_id === statId
+                      (s) => s.stat_id === stat.stat_id
                     );
                     const value = playerStat?.value || "-";
                     const formattedValue =
@@ -113,7 +121,9 @@ export function TeamRoster({ leagueKey, teamKey }: TeamRosterProps) {
                         ? parseFloat(value).toFixed(1)
                         : value;
 
-                    return <TableCell key={statId}>{formattedValue}</TableCell>;
+                    return (
+                      <TableCell key={stat.stat_id}>{formattedValue}</TableCell>
+                    );
                   })}
                 </TableRow>
               ))}

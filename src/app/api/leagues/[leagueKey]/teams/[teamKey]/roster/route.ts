@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTeamRosterPlayers } from "@/lib/yahoo-api";
+import {
+  enhanceTeamRosterPlayers,
+  getLeagueSettings,
+  getStatCategories,
+  getTeamRosterPlayers,
+} from "@/lib/yahoo-api";
 import { getAccessTokenFromCookies, updateTokenCookies } from "@/lib/api-utils";
 
 export async function GET(
@@ -13,7 +18,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { teamKey } = await params;
+    const { leagueKey, teamKey } = await params;
     const { searchParams } = new URL(request.url);
     const weekParam = searchParams.get("week");
     const week = weekParam ? parseInt(weekParam, 10) : undefined;
@@ -32,13 +37,15 @@ export async function GET(
       );
     }
 
-    const rosterData = await getTeamRosterPlayers(
-      tokenResult.accessToken,
-      teamKey,
-      week
-    );
+    const [leagueSettings, rosterData] = await Promise.all([
+      getLeagueSettings(tokenResult.accessToken, leagueKey),
+      getTeamRosterPlayers(tokenResult.accessToken, teamKey, week),
+    ]);
 
-    const response = NextResponse.json({ roster: rosterData });
+    const statCategories = getStatCategories(leagueSettings);
+    const enhancedRoster = enhanceTeamRosterPlayers(rosterData, statCategories);
+
+    const response = NextResponse.json({ roster: enhancedRoster });
 
     // Update cookies if token was refreshed
     if (tokenResult.refreshTokens) {

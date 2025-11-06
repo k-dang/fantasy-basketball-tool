@@ -197,6 +197,27 @@ export async function getTeamRosterPlayers(
   return playersSubset;
 }
 
+export function enhanceTeamRosterPlayers(
+  teamRosterPlayerStats: Array<{
+    name: string | undefined;
+    image_url: string | undefined;
+    stats: Array<{ stat_id: string; value: string }>;
+  }>,
+  statCategories: Record<string, StatCategory>
+) {
+  return teamRosterPlayerStats.map((player) => {
+    return {
+      ...player,
+      stats: player.stats.map((stat) => {
+        return {
+          ...stat,
+          display_name: statCategories[stat.stat_id].display_name,
+        };
+      }),
+    };
+  });
+}
+
 export async function getLeagueSettings(
   accessToken: string,
   leagueKey: string

@@ -114,16 +114,17 @@ interface TeamRosterResponse {
   roster: Array<{
     name: string | undefined;
     image_url: string | undefined;
-    stats: Array<{ stat_id: string; value: string }>;
+    stats: Array<{ stat_id: string; value: string; display_name: string }>;
   }>;
 }
 
 export function useTeamRoster(
   leagueKey: string | null,
-  teamKey: string | null
+  teamKey: string | null,
+  week?: number
 ) {
   return useQuery<TeamRosterResponse, Error>({
-    queryKey: ["teamRoster", leagueKey, teamKey],
+    queryKey: ["teamRoster", leagueKey, teamKey, week],
     queryFn: async () => {
       if (!teamKey) {
         throw new Error("Team key is required");
@@ -133,9 +134,10 @@ export function useTeamRoster(
         throw new Error("League key is required");
       }
 
-      const response = await fetch(
-        `/api/leagues/${leagueKey}/teams/${teamKey}/roster`
-      );
+      const url = `/api/leagues/${leagueKey}/teams/${teamKey}/roster${
+        week !== undefined ? `?week=${week}` : ""
+      }`;
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(

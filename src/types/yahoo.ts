@@ -29,12 +29,7 @@ interface GameContainer {
         Record<
           string,
           {
-            league: Array<{
-              league_key: string;
-              league_id: string;
-              name: string;
-              season: string;
-            }>;
+            league: Array<League>;
           }
         >,
         "count"
@@ -50,6 +45,12 @@ export interface League {
   league_id: string;
   name: string;
   season: string;
+  matchup_week: number;
+  current_week: number;
+  start_date: string;
+  end_date: string;
+  start_week: string;
+  end_week: string;
 }
 
 type TeamArrayElement = Record<string, unknown>;
