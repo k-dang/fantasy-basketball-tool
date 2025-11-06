@@ -202,3 +202,36 @@ export type PlayerArrayElement = {
   headshot?: { url: string };
   image_url?: string;
 } & Record<string, unknown>;
+
+// TODO move these
+// Types for weekly roster averages
+export interface PlayerWeeklyStat {
+  stat_id: string;
+  value: string;
+  display_name: string;
+}
+
+export interface PlayerWeeklyStats {
+  week: number;
+  stats: PlayerWeeklyStat[];
+}
+
+export interface PlayerAggregatedStat {
+  stat_id: string;
+  display_name: string;
+  average: number | null;
+  min: number | null;
+  max: number | null;
+  standard_deviation: number | null;
+}
+
+export interface PlayerWeeklyAverages {
+  name: string | undefined;
+  image_url: string | undefined;
+  weekly_stats: PlayerWeeklyStats[];
+  aggregated_stats: PlayerAggregatedStat[];
+}
+
+export interface PlayerWeeklyAveragesResponse {
+  roster: PlayerWeeklyAverages[];
+}
