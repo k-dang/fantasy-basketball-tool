@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { League, StatContainer, ParsedMatchup } from "@/types/yahoo";
+import type {
+  League,
+  StatContainer,
+  ParsedMatchup,
+  PlayerWeeklyAveragesResponse,
+} from "@/types/yahoo";
 
 interface LeaguesResponse {
   leagues: Array<League>;
@@ -142,6 +147,39 @@ export function useTeamRoster(
       if (!response.ok) {
         throw new Error(
           `Failed to fetch team roster: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!leagueKey && !!teamKey,
+    retry: false,
+  });
+}
+
+export function useTeamRosterAverages(
+  leagueKey: string | null,
+  teamKey: string | null
+) {
+  return useQuery<PlayerWeeklyAveragesResponse, Error>({
+    queryKey: ["teamRosterAverages", leagueKey, teamKey],
+    queryFn: async () => {
+      if (!teamKey) {
+        throw new Error("Team key is required");
+      }
+
+      if (!leagueKey) {
+        throw new Error("League key is required");
+      }
+
+      const response = await fetch(
+        `/api/leagues/${leagueKey}/teams/${teamKey}/roster/averages`
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch team roster averages: ${response.statusText}`
         );
       }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { WeeklyStats } from "@/components/WeeklyStats";
 import { TeamRoster } from "@/components/TeamRoster";
+import { RosterAverages } from "@/components/RosterAverages";
 import { LeagueSelector } from "@/components/LeagueSelector";
 import { TeamSelector } from "@/components/TeamSelector";
 import type { League } from "@/types/yahoo";
@@ -66,6 +67,7 @@ export default function DashboardPage() {
               <TabsList>
                 <TabsTrigger value="weekly-stats">Weekly Stats</TabsTrigger>
                 <TabsTrigger value="roster">Roster</TabsTrigger>
+                <TabsTrigger value="roster-averages">Roster Averages</TabsTrigger>
               </TabsList>
               <TabsContent value="weekly-stats">
                 <WeeklyStats
@@ -76,6 +78,12 @@ export default function DashboardPage() {
               <TabsContent value="roster">
                 <TeamRoster
                   league={selectedLeague}
+                  teamKey={selectedTeam}
+                />
+              </TabsContent>
+              <TabsContent value="roster-averages">
+                <RosterAverages
+                  leagueKey={selectedLeague?.league_key ?? null}
                   teamKey={selectedTeam}
                 />
               </TabsContent>
