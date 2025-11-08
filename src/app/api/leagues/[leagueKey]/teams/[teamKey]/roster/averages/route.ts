@@ -65,6 +65,8 @@ export async function GET(
       {
         name: string | undefined;
         image_url: string | undefined;
+        status: string | undefined;
+        status_full: string | undefined;
         weeklyStats: Map<
           number,
           { week: number; stats: Array<{ stat_id: string; value: string }> }
@@ -81,6 +83,8 @@ export async function GET(
           playerMap.set(playerKey, {
             name: player.name,
             image_url: player.image_url,
+            status: player.status,
+            status_full: player.status_full,
             weeklyStats: new Map(),
           });
         }
@@ -184,6 +188,8 @@ export async function GET(
       rosterAverages.push({
         name: playerData.name,
         image_url: playerData.image_url,
+        status: playerData.status,
+        status_full: playerData.status_full,
         weekly_stats: weeklyStatsArray,
         aggregated_stats: aggregatedStats,
       });

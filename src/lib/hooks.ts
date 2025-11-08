@@ -119,6 +119,8 @@ interface TeamRosterResponse {
   roster: Array<{
     name: string | undefined;
     image_url: string | undefined;
+    status: string | undefined;
+    status_full: string | undefined;
     stats: Array<{ stat_id: string; value: string; display_name: string }>;
   }>;
 }

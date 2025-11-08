@@ -158,6 +158,8 @@ export async function getTeamRosterPlayers(
     let name: string | undefined;
     let image_url: string | undefined;
     let playerStats: StatContainer[] = [];
+    let status: string | undefined;
+    let status_full: string | undefined;
 
     for (const obj of player[0] as Array<PlayerArrayElement>) {
       if (obj.name && typeof obj.name.full === "string") {
@@ -165,6 +167,12 @@ export async function getTeamRosterPlayers(
       }
       if (obj.image_url && typeof obj.image_url === "string") {
         image_url = obj.image_url;
+      }
+      if (obj.status && typeof obj.status === "string") {
+        status = obj.status;
+      }
+      if (obj.status_full && typeof obj.status_full === "string") {
+        status_full = obj.status_full;
       }
     }
 
@@ -192,6 +200,8 @@ export async function getTeamRosterPlayers(
       name: name,
       image_url: image_url,
       stats: stats,
+      status: status,
+      status_full: status_full,
     };
   });
   return playersSubset;
@@ -201,6 +211,8 @@ export function enhanceTeamRosterPlayers(
   teamRosterPlayerStats: Array<{
     name: string | undefined;
     image_url: string | undefined;
+    status: string | undefined;
+    status_full: string | undefined;
     stats: Array<{ stat_id: string; value: string }>;
   }>,
   statCategories: Record<string, StatCategory>

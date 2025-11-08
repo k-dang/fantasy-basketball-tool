@@ -201,6 +201,8 @@ export type PlayerArrayElement = {
   name?: { full: string };
   headshot?: { url: string };
   image_url?: string;
+  status?: string;
+  status_full?: string;
 } & Record<string, unknown>;
 
 // TODO move these
@@ -228,6 +230,8 @@ export interface PlayerAggregatedStat {
 export interface PlayerWeeklyAverages {
   name: string | undefined;
   image_url: string | undefined;
+  status: string | undefined;
+  status_full: string | undefined;
   weekly_stats: PlayerWeeklyStats[];
   aggregated_stats: PlayerAggregatedStat[];
 }

@@ -18,6 +18,7 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { useLeagues, useTeamRoster } from "@/lib/hooks";
 import Image from "next/image";
 import type { League } from "@/types/yahoo";
@@ -66,6 +67,23 @@ export function TeamRoster({ league, teamKey }: TeamRosterProps) {
       display_name: stat.display_name,
     })) || [];
 
+  // Get badge variant based on injury status
+  const getStatusBadgeVariant = (
+    status: string | undefined
+  ): "destructive" | "outline" | "default" => {
+    if (!status) return "default";
+    const upperStatus = status.toUpperCase();
+    // Serious injuries: INJ, O (Out)
+    if (upperStatus === "INJ" || upperStatus === "O") {
+      return "destructive";
+    }
+    // Day-to-day/Questionable: DTD, Q
+    if (upperStatus === "DTD" || upperStatus === "Q") {
+      return "outline";
+    }
+    return "default";
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -107,6 +125,14 @@ export function TeamRoster({ league, teamKey }: TeamRosterProps) {
                         />
                       </div>
                       <span>{player.name || "Unknown Player"}</span>
+                      {player.status && (
+                        <Badge
+                          variant={getStatusBadgeVariant(player.status)}
+                          title={player.status_full || player.status}
+                        >
+                          {player.status}
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   {stats.map((stat) => {

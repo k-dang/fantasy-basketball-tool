@@ -18,6 +18,7 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { useTeamRosterAverages } from "@/lib/hooks";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import Image from "next/image";
@@ -178,6 +179,23 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     return `hsl(${hue}, 70%, 90%)`;
   };
 
+  // Get badge variant based on injury status
+  const getStatusBadgeVariant = (
+    status: string | undefined
+  ): "destructive" | "outline" | "default" => {
+    if (!status) return "default";
+    const upperStatus = status.toUpperCase();
+    // Serious injuries: INJ, O (Out)
+    if (upperStatus === "INJ" || upperStatus === "O") {
+      return "destructive";
+    }
+    // Day-to-day/Questionable: DTD, Q
+    if (upperStatus === "DTD" || upperStatus === "Q") {
+      return "outline";
+    }
+    return "default";
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -235,6 +253,14 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
                         />
                       </div>
                       <span>{player.name || "Unknown Player"}</span>
+                      {player.status && (
+                        <Badge
+                          variant={getStatusBadgeVariant(player.status)}
+                          title={player.status_full || player.status}
+                        >
+                          {player.status}
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   {stats.map((stat) => {
