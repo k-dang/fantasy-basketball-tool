@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
   enhanceTeamRosterPlayers,
   getLeagueSettings,
@@ -6,6 +7,10 @@ import {
   getTeamRosterPlayers,
 } from "@/lib/yahoo-api";
 import { getAccessTokenFromCookies, updateTokenCookies } from "@/lib/api-utils";
+
+const searchParamsSchema = z.object({
+  week: z.coerce.number().int().nonnegative().optional(),
+});
 
 export async function GET(
   request: NextRequest,
@@ -19,9 +24,6 @@ export async function GET(
     }
 
     const { leagueKey, teamKey } = await params;
-    const { searchParams } = new URL(request.url);
-    const weekParam = searchParams.get("week");
-    const week = weekParam ? parseInt(weekParam, 10) : undefined;
 
     if (!teamKey) {
       return NextResponse.json(
@@ -30,12 +32,20 @@ export async function GET(
       );
     }
 
-    if (week !== undefined && (isNaN(week) || week < 1)) {
+    // Validate search params
+    const { searchParams } = new URL(request.url);
+    const searchParamsResult = searchParamsSchema.safeParse({
+      week: searchParams.get("week"),
+    });
+
+    if (!searchParamsResult.success) {
       return NextResponse.json(
-        { error: "Week must be a positive number" },
+        { error: "Invalid week parameter", details: z.treeifyError(searchParamsResult.error) },
         { status: 400 }
       );
     }
+
+    const { week } = searchParamsResult.data;
 
     const [leagueSettings, rosterData] = await Promise.all([
       getLeagueSettings(tokenResult.accessToken, leagueKey),

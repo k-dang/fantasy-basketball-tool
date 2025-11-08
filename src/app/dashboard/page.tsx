@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { WeeklyStats } from "@/components/WeeklyStats";
-import { TeamRoster } from "@/components/TeamRoster";
+import { Roster } from "@/components/Roster";
 import { RosterAverages } from "@/components/RosterAverages";
 import { LeagueSelector } from "@/components/LeagueSelector";
 import { TeamSelector } from "@/components/TeamSelector";
@@ -76,7 +76,7 @@ export default function DashboardPage() {
                 />
               </TabsContent>
               <TabsContent value="roster">
-                <TeamRoster
+                <Roster
                   league={selectedLeague}
                   teamKey={selectedTeam}
                 />

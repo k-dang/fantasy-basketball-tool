@@ -28,12 +28,12 @@ interface TeamRosterProps {
   teamKey: string | null;
 }
 
-export function TeamRoster({ league, teamKey }: TeamRosterProps) {
+export function Roster({ league, teamKey }: TeamRosterProps) {
   const {
     data: rosterData,
     isLoading,
     error,
-  } = useTeamRoster(league.league_key, teamKey);
+  } = useTeamRoster(league.league_key, teamKey, 0);
   const {
     data: leaguesData,
     isLoading: leaguesLoading,
