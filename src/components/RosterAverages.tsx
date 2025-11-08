@@ -45,6 +45,34 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     [rosterAveragesData?.roster]
   );
 
+  // Calculate min/max ranges for each stat (excluding null values)
+  const statRanges = useMemo(() => {
+    const ranges: Record<string, { min: number; max: number }> = {};
+
+    originalRoster.forEach((player) => {
+      player.aggregated_stats?.forEach((stat) => {
+        if (stat.average === null || stat.average === undefined) {
+          return;
+        }
+
+        if (!ranges[stat.stat_id]) {
+          ranges[stat.stat_id] = { min: stat.average, max: stat.average };
+        } else {
+          ranges[stat.stat_id].min = Math.min(
+            ranges[stat.stat_id].min,
+            stat.average
+          );
+          ranges[stat.stat_id].max = Math.max(
+            ranges[stat.stat_id].max,
+            stat.average
+          );
+        }
+      });
+    });
+
+    return ranges;
+  }, [originalRoster]);
+
   // Sort roster based on sort state
   const roster = useMemo(() => {
     if (!sortState.column || !sortState.direction) {
@@ -123,6 +151,33 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     });
   };
 
+  // Get background color for a stat value based on its position in the range
+  const getStatBackgroundColor = (
+    statId: string,
+    value: number | null | undefined
+  ): string => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    const range = statRanges[statId];
+    if (!range || range.min === range.max) {
+      // No range or all values are the same - no color
+      return "";
+    }
+
+    // Normalize value to 0-1 where 1 is best (max) and 0 is worst (min)
+    const normalized = (value - range.min) / (range.max - range.min);
+
+    // Interpolate hue from green (120) to red (0)
+    // Best values (normalized = 1) -> green (120)
+    // Worst values (normalized = 0) -> red (0)
+    const hue = normalized * 120;
+
+    // Use a light background with good saturation for visibility
+    return `hsl(${hue}, 70%, 90%)`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -192,8 +247,20 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
                         ? "-"
                         : average.toFixed(1);
 
+                    const backgroundColor = getStatBackgroundColor(
+                      stat.stat_id,
+                      average
+                    );
+
                     return (
-                      <TableCell key={stat.stat_id}>{formattedValue}</TableCell>
+                      <TableCell
+                        key={stat.stat_id}
+                        style={
+                          backgroundColor ? { backgroundColor } : undefined
+                        }
+                      >
+                        {formattedValue}
+                      </TableCell>
                     );
                   })}
                 </TableRow>

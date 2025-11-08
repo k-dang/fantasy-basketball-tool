@@ -12,7 +12,6 @@ import {
   calculateStandardDeviation,
 } from "@/lib/stat-utils";
 import type {
-  PlayerWeeklyAveragesResponse,
   PlayerWeeklyAverages,
   PlayerWeeklyStats,
   PlayerAggregatedStat,
@@ -97,6 +96,16 @@ export async function GET(
       }
     }
 
+    // Create stat order map from actual roster data (same order as WeeklyStats and TeamRoster)
+    // Use the order from the first player's stats from the first week, matching TeamRoster behavior
+    const statOrderMap = new Map<string, number>();
+    if (weeklyRosters.length > 0 && weeklyRosters[0].roster.length > 0) {
+      const firstPlayerStats = weeklyRosters[0].roster[0].stats;
+      firstPlayerStats.forEach((stat, index) => {
+        statOrderMap.set(stat.stat_id, index);
+      });
+    }
+
     // Calculate aggregated stats for each player
     const rosterAverages: PlayerWeeklyAverages[] = [];
 
@@ -145,8 +154,20 @@ export async function GET(
         });
       }
 
-      // Sort aggregated stats by stat_id for consistency
-      aggregatedStats.sort((a, b) => parseInt(a.stat_id) - parseInt(b.stat_id));
+      // Sort aggregated stats
+      aggregatedStats.sort((a, b) => {
+        const aIndex = statOrderMap.get(a.stat_id);
+        const bIndex = statOrderMap.get(b.stat_id);
+
+        // Stats not found in roster data go to the end
+        if (aIndex === undefined && bIndex === undefined) {
+          return a.stat_id.localeCompare(b.stat_id);
+        }
+        if (aIndex === undefined) return 1;
+        if (bIndex === undefined) return -1;
+
+        return aIndex - bIndex;
+      });
 
       // Enhance weekly stats with display names once at the end
       const weeklyStatsArray: PlayerWeeklyStats[] = rawWeeklyStats.map(
