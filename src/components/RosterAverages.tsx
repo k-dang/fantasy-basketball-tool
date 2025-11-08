@@ -19,28 +19,68 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useTeamRosterAverages } from "@/lib/hooks";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import Image from "next/image";
+import { useMemo, useState } from "react";
 
 interface RosterAveragesProps {
   leagueKey: string | null;
   teamKey: string | null;
 }
 
-export function RosterAverages({
-  leagueKey,
-  teamKey,
-}: RosterAveragesProps) {
+export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
   const {
     data: rosterAveragesData,
     isLoading,
     error,
   } = useTeamRosterAverages(leagueKey, teamKey);
 
-  const roster = rosterAveragesData?.roster || [];
+  const [sortState, setSortState] = useState<{
+    column: string | null;
+    direction: "asc" | "desc" | null;
+  }>({ column: null, direction: null });
+
+  const originalRoster = useMemo(
+    () => rosterAveragesData?.roster || [],
+    [rosterAveragesData?.roster]
+  );
+
+  // Sort roster based on sort state
+  const roster = useMemo(() => {
+    if (!sortState.column || !sortState.direction) {
+      return originalRoster;
+    }
+
+    const sorted = [...originalRoster].sort((a, b) => {
+      const aStat = a.aggregated_stats?.find(
+        (s) => s.stat_id === sortState.column
+      );
+      const bStat = b.aggregated_stats?.find(
+        (s) => s.stat_id === sortState.column
+      );
+
+      const aValue = aStat?.average ?? null;
+      const bValue = bStat?.average ?? null;
+
+      // Handle null values - place them at the end
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      // Sort numerically
+      const diff = aValue - bValue;
+      return sortState.direction === "asc" ? diff : -diff;
+    });
+
+    return sorted;
+  }, [originalRoster, sortState]);
 
   if (isLoading) {
     return (
-      <LoadingState title="Roster Averages" message="Loading roster averages..." />
+      <LoadingState
+        title="Roster Averages"
+        message="Loading roster averages..."
+      />
     );
   }
 
@@ -48,7 +88,7 @@ export function RosterAverages({
     return <ErrorState title="Roster Averages" error={error} />;
   }
 
-  if (!roster || roster.length === 0) {
+  if (!originalRoster || originalRoster.length === 0) {
     return (
       <EmptyState
         title="Roster Averages"
@@ -60,10 +100,28 @@ export function RosterAverages({
 
   // Use the order from the first player's aggregated stats
   const stats =
-    roster[0]?.aggregated_stats?.map((stat) => ({
+    originalRoster[0]?.aggregated_stats?.map((stat) => ({
       stat_id: stat.stat_id,
       display_name: stat.display_name,
     })) || [];
+
+  const handleSortClick = (statId: string) => {
+    setSortState((prev) => {
+      if (prev.column !== statId) {
+        // New column - sort ascending
+        return { column: statId, direction: "asc" };
+      } else if (prev.direction === "asc") {
+        // Same column, ascending -> descending
+        return { column: statId, direction: "desc" };
+      } else if (prev.direction === "desc") {
+        // Same column, descending -> unsorted
+        return { column: null, direction: null };
+      } else {
+        // Fallback to ascending
+        return { column: statId, direction: "asc" };
+      }
+    });
+  };
 
   return (
     <Card>
@@ -81,9 +139,29 @@ export function RosterAverages({
                 <TableHead className="sticky left-0 bg-background z-10">
                   Player
                 </TableHead>
-                {stats.map((stat) => (
-                  <TableHead key={stat.stat_id}>{stat.display_name}</TableHead>
-                ))}
+                {stats.map((stat) => {
+                  const isSorted = sortState.column === stat.stat_id;
+                  const isAsc = sortState.direction === "asc";
+                  const isDesc = sortState.direction === "desc";
+
+                  return (
+                    <TableHead
+                      key={stat.stat_id}
+                      className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                      onClick={() => handleSortClick(stat.stat_id)}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>{stat.display_name}</span>
+                        {isSorted && isAsc && (
+                          <ArrowUp className="size-4 shrink-0" />
+                        )}
+                        {isSorted && isDesc && (
+                          <ArrowDown className="size-4 shrink-0" />
+                        )}
+                      </div>
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -127,4 +205,3 @@ export function RosterAverages({
     </Card>
   );
 }
-
