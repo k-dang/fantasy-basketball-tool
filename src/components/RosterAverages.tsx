@@ -20,6 +20,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { useTeamRosterAverages } from "@/lib/hooks";
+import { getStatusBadgeVariant } from "@/lib/stat-utils";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -177,23 +178,6 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
 
     // Use a light background with good saturation for visibility
     return `hsl(${hue}, 70%, 90%)`;
-  };
-
-  // Get badge variant based on injury status
-  const getStatusBadgeVariant = (
-    status: string | undefined
-  ): "destructive" | "outline" | "default" => {
-    if (!status) return "default";
-    const upperStatus = status.toUpperCase();
-    // Serious injuries: INJ, O (Out)
-    if (upperStatus === "INJ" || upperStatus === "O") {
-      return "destructive";
-    }
-    // Day-to-day/Questionable: DTD, Q
-    if (upperStatus === "DTD" || upperStatus === "Q") {
-      return "outline";
-    }
-    return "default";
   };
 
   return (

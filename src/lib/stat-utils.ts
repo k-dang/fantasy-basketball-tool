@@ -148,3 +148,20 @@ export function calculateStandardDeviation(values: (string | number)[]): number 
   
   return Math.sqrt(avgSquareDiff);
 }
+
+// Get badge variant based on injury status
+export function getStatusBadgeVariant(
+  status: string | undefined
+): "destructive" | "outline" | "default" {
+  if (!status) return "default";
+  const upperStatus = status.toUpperCase();
+  // Serious injuries: INJ, O (Out)
+  if (upperStatus === "INJ" || upperStatus === "O") {
+    return "destructive";
+  }
+  // Day-to-day/Questionable: DTD, Q
+  if (upperStatus === "DTD" || upperStatus === "Q") {
+    return "outline";
+  }
+  return "default";
+}
