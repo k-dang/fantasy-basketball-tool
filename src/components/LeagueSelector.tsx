@@ -23,11 +23,7 @@ export function LeagueSelector({
   selectedLeague,
   onSelect,
 }: LeagueSelectorProps) {
-  const {
-    data: leaguesData,
-    isLoading,
-    error,
-  } = useLeagues();
+  const { data: leaguesData, isLoading, error } = useLeagues();
 
   const leagues = leaguesData?.leagues || [];
 
@@ -54,7 +50,7 @@ export function LeagueSelector({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-2">
+        <div className="flex flex-col space-y-2">
           {leagues.map((league) => (
             <Button
               key={league.league_key}
@@ -66,7 +62,9 @@ export function LeagueSelector({
               onClick={() => onSelect(league)}
               className="justify-start"
             >
-              {league.name} ({league.season})
+              <span className="truncate">
+                {league.name} ({league.season})
+              </span>
             </Button>
           ))}
         </div>

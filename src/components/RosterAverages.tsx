@@ -50,6 +50,13 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     [rosterAveragesData?.roster]
   );
 
+  // Use the order from the first player's aggregated stats
+  const stats =
+    originalRoster[0]?.aggregated_stats?.map((stat) => ({
+      stat_id: stat.stat_id,
+      display_name: stat.display_name,
+    })) || [];
+
   // Calculate min/max ranges for each stat (excluding null values)
   const statRanges = useMemo(() => {
     const ranges: Record<string, { min: number; max: number }> = {};
@@ -107,13 +114,6 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
 
     return sorted;
   }, [originalRoster, sortState]);
-
-  // Use the order from the first player's aggregated stats
-  const stats =
-    originalRoster[0]?.aggregated_stats?.map((stat) => ({
-      stat_id: stat.stat_id,
-      display_name: stat.display_name,
-    })) || [];
 
   const handleSortClick = (statId: string) => {
     setSortState((prev) => {

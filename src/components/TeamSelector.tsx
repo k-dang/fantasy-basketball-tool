@@ -24,29 +24,15 @@ export function TeamSelector({
   selectedTeam,
   onSelect,
 }: TeamSelectorProps) {
-  const {
-    data: teamsData,
-    isLoading,
-    error,
-  } = useTeams(leagueKey);
+  const { data: teamsData, isLoading, error } = useTeams(leagueKey);
 
   const teams = teamsData?.teams || [];
   if (isLoading) {
-    return (
-      <LoadingState
-        title="Select Team"
-        message="Loading teams..."
-      />
-    );
+    return <LoadingState title="Select Team" message="Loading teams..." />;
   }
 
   if (error) {
-    return (
-      <ErrorState
-        title="Select Team"
-        error={error}
-      />
-    );
+    return <ErrorState title="Select Team" error={error} />;
   }
 
   if (teams.length === 0) {
@@ -66,7 +52,7 @@ export function TeamSelector({
         <CardDescription>Choose a team to view statistics</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-2">
+        <div className="flex flex-col space-y-2">
           {teams.map((team) => (
             <Button
               key={team.team_key}
@@ -74,7 +60,7 @@ export function TeamSelector({
               onClick={() => onSelect(team.team_key)}
               className="justify-start"
             >
-              {team.name}
+              <span className="truncate">{team.name}</span>
             </Button>
           ))}
         </div>
@@ -82,4 +68,3 @@ export function TeamSelector({
     </Card>
   );
 }
-

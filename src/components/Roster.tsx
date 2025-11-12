@@ -42,6 +42,12 @@ export function Roster({ league, teamKey }: TeamRosterProps) {
   } = useLeagues();
 
   const roster = rosterData?.roster || [];
+  // Use the order from the first player's stats (same as WeeklyStats uses first matchup)
+  const stats =
+    roster[0]?.stats?.map((stat) => ({
+      stat_id: stat.stat_id,
+      display_name: stat.display_name,
+    })) || [];
 
   if (isLoading || leaguesLoading) {
     return <LoadingState title="Roster" message="Loading roster..." />;
@@ -60,13 +66,6 @@ export function Roster({ league, teamKey }: TeamRosterProps) {
       />
     );
   }
-
-  // Use the order from the first player's stats (same as WeeklyStats uses first matchup)
-  const stats =
-    roster[0]?.stats?.map((stat) => ({
-      stat_id: stat.stat_id,
-      display_name: stat.display_name,
-    })) || [];
 
   return (
     <Card>
