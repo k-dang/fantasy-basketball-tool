@@ -239,3 +239,28 @@ export interface PlayerWeeklyAverages {
 export interface PlayerWeeklyAveragesResponse {
   roster: PlayerWeeklyAverages[];
 }
+
+// Types for player predictions
+export type TrendDirection = "improving" | "stable" | "declining";
+
+export interface PlayerPredictedStat {
+  stat_id: string;
+  display_name: string;
+  predicted_value: number | null;
+  confidence_interval: number | null; // ± value
+  trend: TrendDirection;
+}
+
+export interface PlayerPrediction {
+  name: string | undefined;
+  image_url: string | undefined;
+  status: string | undefined;
+  status_full: string | undefined;
+  predicted_stats: PlayerPredictedStat[];
+  has_sufficient_data: boolean;
+}
+
+export interface PlayerPredictionsResponse {
+  roster: PlayerPrediction[];
+  target_week: number;
+}

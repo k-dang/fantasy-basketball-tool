@@ -4,6 +4,7 @@ import type {
   StatContainer,
   ParsedMatchup,
   PlayerWeeklyAveragesResponse,
+  PlayerPredictionsResponse,
 } from "@/types/yahoo";
 
 interface LeaguesResponse {
@@ -182,6 +183,39 @@ export function useTeamRosterAverages(
       if (!response.ok) {
         throw new Error(
           `Failed to fetch team roster averages: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!leagueKey && !!teamKey,
+    retry: false,
+  });
+}
+
+export function useTeamRosterPredictions(
+  leagueKey: string | null,
+  teamKey: string | null
+) {
+  return useQuery<PlayerPredictionsResponse, Error>({
+    queryKey: ["teamRosterPredictions", leagueKey, teamKey],
+    queryFn: async () => {
+      if (!teamKey) {
+        throw new Error("Team key is required");
+      }
+
+      if (!leagueKey) {
+        throw new Error("League key is required");
+      }
+
+      const response = await fetch(
+        `/api/leagues/${leagueKey}/teams/${teamKey}/roster/predictions`
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch team roster predictions: ${response.statusText}`
         );
       }
 

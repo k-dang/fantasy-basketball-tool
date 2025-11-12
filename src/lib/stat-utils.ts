@@ -102,9 +102,9 @@ export function calculateAverage(values: (string | number)[]): number | null {
   const numericValues = values
     .map((v) => (typeof v === "string" ? parseFloat(v) : v))
     .filter((v) => !isNaN(v) && v !== null && v !== undefined);
-  
+
   if (numericValues.length === 0) return null;
-  
+
   const sum = numericValues.reduce((acc, val) => acc + val, 0);
   return sum / numericValues.length;
 }
@@ -114,9 +114,9 @@ export function calculateMin(values: (string | number)[]): number | null {
   const numericValues = values
     .map((v) => (typeof v === "string" ? parseFloat(v) : v))
     .filter((v) => !isNaN(v) && v !== null && v !== undefined);
-  
+
   if (numericValues.length === 0) return null;
-  
+
   return Math.min(...numericValues);
 }
 
@@ -125,27 +125,30 @@ export function calculateMax(values: (string | number)[]): number | null {
   const numericValues = values
     .map((v) => (typeof v === "string" ? parseFloat(v) : v))
     .filter((v) => !isNaN(v) && v !== null && v !== undefined);
-  
+
   if (numericValues.length === 0) return null;
-  
+
   return Math.max(...numericValues);
 }
 
 // Calculate standard deviation of numeric values
-export function calculateStandardDeviation(values: (string | number)[]): number | null {
+export function calculateStandardDeviation(
+  values: (string | number)[]
+): number | null {
   const numericValues = values
     .map((v) => (typeof v === "string" ? parseFloat(v) : v))
     .filter((v) => !isNaN(v) && v !== null && v !== undefined);
-  
+
   if (numericValues.length === 0) return null;
   if (numericValues.length === 1) return 0;
-  
+
   const avg = calculateAverage(values);
   if (avg === null) return null;
-  
+
   const squareDiffs = numericValues.map((v) => Math.pow(v - avg, 2));
-  const avgSquareDiff = squareDiffs.reduce((acc, val) => acc + val, 0) / numericValues.length;
-  
+  const avgSquareDiff =
+    squareDiffs.reduce((acc, val) => acc + val, 0) / numericValues.length;
+
   return Math.sqrt(avgSquareDiff);
 }
 
@@ -165,3 +168,31 @@ export function getStatusBadgeVariant(
   }
   return "default";
 }
+
+// Get background color for a stat value based on its position in the range
+export function getStatBackgroundColor(
+  statId: string,
+  value: number | null | undefined,
+  statRanges: Record<string, { min: number; max: number }>
+): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  const range = statRanges[statId];
+  if (!range || range.min === range.max) {
+    // No range or all values are the same - no color
+    return "";
+  }
+
+  // Normalize value to 0-1 where 1 is best (max) and 0 is worst (min)
+  const normalized = (value - range.min) / (range.max - range.min);
+
+  // Interpolate hue from green (120) to red (0)
+  // Best values (normalized = 1) -> green (120)
+  // Worst values (normalized = 0) -> red (0)
+  const hue = normalized * 120;
+
+  // Use a light background with good saturation for visibility
+  return `hsl(${hue}, 70%, 90%)`;
+};

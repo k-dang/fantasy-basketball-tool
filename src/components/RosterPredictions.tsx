@@ -19,26 +19,26 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { useTeamRosterAverages } from "@/lib/hooks";
-import {
-  getStatBackgroundColor,
-  getStatusBadgeVariant,
-} from "@/lib/stat-utils";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { useTeamRosterPredictions } from "@/lib/hooks";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { getStatBackgroundColor } from "@/lib/stat-utils";
 
-interface RosterAveragesProps {
+interface RosterPredictionsProps {
   leagueKey: string | null;
   teamKey: string | null;
 }
 
-export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
+export function RosterPredictions({
+  leagueKey,
+  teamKey,
+}: RosterPredictionsProps) {
   const {
-    data: rosterAveragesData,
+    data: predictionsData,
     isLoading,
     error,
-  } = useTeamRosterAverages(leagueKey, teamKey);
+  } = useTeamRosterPredictions(leagueKey, teamKey);
 
   const [sortState, setSortState] = useState<{
     column: string | null;
@@ -46,8 +46,8 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
   }>({ column: null, direction: null });
 
   const originalRoster = useMemo(
-    () => rosterAveragesData?.roster || [],
-    [rosterAveragesData?.roster]
+    () => predictionsData?.roster || [],
+    [predictionsData?.roster]
   );
 
   // Calculate min/max ranges for each stat (excluding null values)
@@ -55,21 +55,27 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     const ranges: Record<string, { min: number; max: number }> = {};
 
     originalRoster.forEach((player) => {
-      player.aggregated_stats?.forEach((stat) => {
-        if (stat.average === null || stat.average === undefined) {
+      player.predicted_stats?.forEach((stat) => {
+        if (
+          stat.predicted_value === null ||
+          stat.predicted_value === undefined
+        ) {
           return;
         }
 
         if (!ranges[stat.stat_id]) {
-          ranges[stat.stat_id] = { min: stat.average, max: stat.average };
+          ranges[stat.stat_id] = {
+            min: stat.predicted_value,
+            max: stat.predicted_value,
+          };
         } else {
           ranges[stat.stat_id].min = Math.min(
             ranges[stat.stat_id].min,
-            stat.average
+            stat.predicted_value
           );
           ranges[stat.stat_id].max = Math.max(
             ranges[stat.stat_id].max,
-            stat.average
+            stat.predicted_value
           );
         }
       });
@@ -85,15 +91,15 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     }
 
     const sorted = [...originalRoster].sort((a, b) => {
-      const aStat = a.aggregated_stats?.find(
+      const aStat = a.predicted_stats?.find(
         (s) => s.stat_id === sortState.column
       );
-      const bStat = b.aggregated_stats?.find(
+      const bStat = b.predicted_stats?.find(
         (s) => s.stat_id === sortState.column
       );
 
-      const aValue = aStat?.average ?? null;
-      const bValue = bStat?.average ?? null;
+      const aValue = aStat?.predicted_value ?? null;
+      const bValue = bStat?.predicted_value ?? null;
 
       // Handle null values - place them at the end
       if (aValue === null && bValue === null) return 0;
@@ -111,29 +117,29 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
   if (isLoading) {
     return (
       <LoadingState
-        title="Roster Averages"
-        message="Loading roster averages..."
+        title="Roster Predictions"
+        message="Loading roster predictions..."
       />
     );
   }
 
   if (error) {
-    return <ErrorState title="Roster Averages" error={error} />;
+    return <ErrorState title="Roster Predictions" error={error} />;
   }
 
   if (!originalRoster || originalRoster.length === 0) {
     return (
       <EmptyState
-        title="Roster Averages"
-        description="No roster averages data available"
+        title="Roster Predictions"
+        description="No roster predictions data available"
         message="No players found for this team."
       />
     );
   }
 
-  // Use the order from the first player's aggregated stats
+  // Use the order from the first player's predicted stats
   const stats =
-    originalRoster[0]?.aggregated_stats?.map((stat) => ({
+    originalRoster[0]?.predicted_stats?.map((stat) => ({
       stat_id: stat.stat_id,
       display_name: stat.display_name,
     })) || [];
@@ -156,12 +162,42 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     });
   };
 
+  // Get badge variant based on injury status
+  const getStatusBadgeVariant = (
+    status: string | undefined
+  ): "destructive" | "outline" | "default" => {
+    if (!status) return "default";
+    const upperStatus = status.toUpperCase();
+    // Serious injuries: INJ, O (Out)
+    if (upperStatus === "INJ" || upperStatus === "O") {
+      return "destructive";
+    }
+    // Day-to-day/Questionable: DTD, Q
+    if (upperStatus === "DTD" || upperStatus === "Q") {
+      return "outline";
+    }
+    return "default";
+  };
+
+  // Get trend icon
+  const getTrendIcon = (trend: "improving" | "stable" | "declining") => {
+    switch (trend) {
+      case "improving":
+        return <ArrowUp className="size-3 shrink-0 text-green-600" />;
+      case "declining":
+        return <ArrowDown className="size-3 shrink-0 text-red-600" />;
+      case "stable":
+        return <Minus className="size-3 shrink-0 text-gray-500" />;
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Roster Averages</CardTitle>
+        <CardTitle>Roster Predictions</CardTitle>
         <CardDescription>
-          Average weekly statistics for each player on the roster
+          Predicted statistics for week {predictionsData?.target_week || "?"}{" "}
+          based on historical performance
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -221,21 +257,41 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
                           {player.status}
                         </Badge>
                       )}
+                      {!player.has_sufficient_data && (
+                        <Badge variant="outline" title="Insufficient data">
+                          Limited Data
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   {stats.map((stat) => {
-                    const playerStat = player.aggregated_stats?.find(
+                    const playerStat = player.predicted_stats?.find(
                       (s) => s.stat_id === stat.stat_id
                     );
-                    const average = playerStat?.average;
-                    const formattedValue =
-                      average === null || average === undefined
-                        ? "-"
-                        : average.toFixed(1);
+                    const predictedValue = playerStat?.predicted_value;
+                    const confidenceInterval = playerStat?.confidence_interval;
+                    const trend = playerStat?.trend || "stable";
+
+                    let formattedValue: string;
+                    if (
+                      predictedValue === null ||
+                      predictedValue === undefined
+                    ) {
+                      formattedValue = "-";
+                    } else if (
+                      confidenceInterval !== null &&
+                      confidenceInterval !== undefined
+                    ) {
+                      formattedValue = `${predictedValue.toFixed(
+                        1
+                      )} ± ${confidenceInterval.toFixed(1)}`;
+                    } else {
+                      formattedValue = predictedValue.toFixed(1);
+                    }
 
                     const backgroundColor = getStatBackgroundColor(
                       stat.stat_id,
-                      average,
+                      predictedValue,
                       statRanges
                     );
 
@@ -246,7 +302,12 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
                           backgroundColor ? { backgroundColor } : undefined
                         }
                       >
-                        {formattedValue}
+                        <div className="flex items-center gap-1">
+                          <span>{formattedValue}</span>
+                          {predictedValue !== null &&
+                            predictedValue !== undefined &&
+                            getTrendIcon(trend)}
+                        </div>
                       </TableCell>
                     );
                   })}
