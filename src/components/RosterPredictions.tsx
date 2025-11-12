@@ -23,7 +23,22 @@ import { useTeamRosterPredictions } from "@/lib/hooks";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { getStatBackgroundColor } from "@/lib/stat-utils";
+import {
+  getStatBackgroundColor,
+  getStatusBadgeVariant,
+} from "@/lib/stat-utils";
+
+// Get trend icon
+const getTrendIcon = (trend: "improving" | "stable" | "declining") => {
+  switch (trend) {
+    case "improving":
+      return <ArrowUp className="size-3 shrink-0 text-green-600" />;
+    case "declining":
+      return <ArrowDown className="size-3 shrink-0 text-red-600" />;
+    case "stable":
+      return <Minus className="size-3 shrink-0 text-gray-500" />;
+  }
+};
 
 interface RosterPredictionsProps {
   leagueKey: string | null;
@@ -114,29 +129,6 @@ export function RosterPredictions({
     return sorted;
   }, [originalRoster, sortState]);
 
-  if (isLoading) {
-    return (
-      <LoadingState
-        title="Roster Predictions"
-        message="Loading roster predictions..."
-      />
-    );
-  }
-
-  if (error) {
-    return <ErrorState title="Roster Predictions" error={error} />;
-  }
-
-  if (!originalRoster || originalRoster.length === 0) {
-    return (
-      <EmptyState
-        title="Roster Predictions"
-        description="No roster predictions data available"
-        message="No players found for this team."
-      />
-    );
-  }
-
   // Use the order from the first player's predicted stats
   const stats =
     originalRoster[0]?.predicted_stats?.map((stat) => ({
@@ -162,34 +154,28 @@ export function RosterPredictions({
     });
   };
 
-  // Get badge variant based on injury status
-  const getStatusBadgeVariant = (
-    status: string | undefined
-  ): "destructive" | "outline" | "default" => {
-    if (!status) return "default";
-    const upperStatus = status.toUpperCase();
-    // Serious injuries: INJ, O (Out)
-    if (upperStatus === "INJ" || upperStatus === "O") {
-      return "destructive";
-    }
-    // Day-to-day/Questionable: DTD, Q
-    if (upperStatus === "DTD" || upperStatus === "Q") {
-      return "outline";
-    }
-    return "default";
-  };
+  if (isLoading) {
+    return (
+      <LoadingState
+        title="Roster Predictions"
+        message="Loading roster predictions..."
+      />
+    );
+  }
 
-  // Get trend icon
-  const getTrendIcon = (trend: "improving" | "stable" | "declining") => {
-    switch (trend) {
-      case "improving":
-        return <ArrowUp className="size-3 shrink-0 text-green-600" />;
-      case "declining":
-        return <ArrowDown className="size-3 shrink-0 text-red-600" />;
-      case "stable":
-        return <Minus className="size-3 shrink-0 text-gray-500" />;
-    }
-  };
+  if (error) {
+    return <ErrorState title="Roster Predictions" error={error} />;
+  }
+
+  if (!originalRoster || originalRoster.length === 0) {
+    return (
+      <EmptyState
+        title="Roster Predictions"
+        description="No roster predictions data available"
+        message="No players found for this team."
+      />
+    );
+  }
 
   return (
     <Card>

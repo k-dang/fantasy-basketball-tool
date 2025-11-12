@@ -108,29 +108,6 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     return sorted;
   }, [originalRoster, sortState]);
 
-  if (isLoading) {
-    return (
-      <LoadingState
-        title="Roster Averages"
-        message="Loading roster averages..."
-      />
-    );
-  }
-
-  if (error) {
-    return <ErrorState title="Roster Averages" error={error} />;
-  }
-
-  if (!originalRoster || originalRoster.length === 0) {
-    return (
-      <EmptyState
-        title="Roster Averages"
-        description="No roster averages data available"
-        message="No players found for this team."
-      />
-    );
-  }
-
   // Use the order from the first player's aggregated stats
   const stats =
     originalRoster[0]?.aggregated_stats?.map((stat) => ({
@@ -155,6 +132,29 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
       }
     });
   };
+
+  if (isLoading) {
+    return (
+      <LoadingState
+        title="Roster Averages"
+        message="Loading roster averages..."
+      />
+    );
+  }
+
+  if (error) {
+    return <ErrorState title="Roster Averages" error={error} />;
+  }
+
+  if (!originalRoster || originalRoster.length === 0) {
+    return (
+      <EmptyState
+        title="Roster Averages"
+        description="No roster averages data available"
+        message="No players found for this team."
+      />
+    );
+  }
 
   return (
     <Card>
