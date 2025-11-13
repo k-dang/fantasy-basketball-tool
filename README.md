@@ -2,6 +2,8 @@
 
 A Next.js application for analyzing Yahoo Fantasy Basketball league data, including roster statistics, weekly matchups, and performance predictions.
 
+![Fantasy Basketball Tool](./images/fantasy-basketball-ss.png)
+
 ## Prerequisites
 
 - Node.js 20+
