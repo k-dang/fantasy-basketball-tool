@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Card,
   CardContent,
@@ -21,11 +20,9 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useTeamMatchups } from "@/lib/hooks";
-import {
-  isLowerBetter,
-  shouldSkipHighlight,
-} from "@/lib/stat-utils";
+import { isLowerBetter, shouldSkipHighlight } from "@/lib/stat-utils";
 import type { ParsedMatchup } from "@/types/yahoo";
+import { useMemo } from "react";
 
 interface CategoryReportCardProps {
   leagueKey: string | null;
@@ -48,7 +45,11 @@ interface GradeResult {
   variant: "default" | "secondary" | "outline" | "destructive";
 }
 
-const gradeThresholds: Array<{ min: number; grade: string; variant: GradeResult["variant"] }> = [
+const gradeThresholds: Array<{
+  min: number;
+  grade: string;
+  variant: GradeResult["variant"];
+}> = [
   { min: 0.75, grade: "A", variant: "default" },
   { min: 0.6, grade: "B", variant: "secondary" },
   { min: 0.5, grade: "C", variant: "outline" },
@@ -60,7 +61,9 @@ function determineOutcome(
   statId: string,
   displayName: string
 ): { outcome: "win" | "loss" | "tie" | "skip"; margin: number | null } {
-  const teamStat = matchup.team_stats?.find((stat) => stat.stat.stat_id === statId);
+  const teamStat = matchup.team_stats?.find(
+    (stat) => stat.stat.stat_id === statId
+  );
   const opponentStat = matchup.opponent_stats?.find(
     (stat) => stat.stat.stat_id === statId
   );
@@ -191,7 +194,7 @@ export function CategoryReportCard({
     error,
   } = useTeamMatchups(leagueKey, teamKey);
 
-  const summaries = React.useMemo(() => {
+  const summaries = useMemo(() => {
     return buildCategorySummaries(matchupsData?.matchups ?? []);
   }, [matchupsData]);
 
