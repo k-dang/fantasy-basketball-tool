@@ -5,6 +5,7 @@ import { WeeklyStats } from "@/components/WeeklyStats";
 import { Roster } from "@/components/Roster";
 import { RosterAverages } from "@/components/RosterAverages";
 import { RosterPredictions } from "@/components/RosterPredictions";
+import { CategoryReportCard } from "@/components/CategoryReportCard";
 import { LeagueSelector } from "@/components/LeagueSelector";
 import { TeamSelector } from "@/components/TeamSelector";
 import type { League } from "@/types/yahoo";
@@ -70,6 +71,9 @@ export default function DashboardPage() {
                 <TabsTrigger value="roster">Roster</TabsTrigger>
                 <TabsTrigger value="roster-averages">Roster Averages</TabsTrigger>
                 <TabsTrigger value="predictions">Predictions</TabsTrigger>
+                <TabsTrigger value="category-report">
+                  Season Report Card
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="weekly-stats">
                 <WeeklyStats
@@ -91,6 +95,12 @@ export default function DashboardPage() {
               </TabsContent>
               <TabsContent value="predictions">
                 <RosterPredictions
+                  leagueKey={selectedLeague?.league_key ?? null}
+                  teamKey={selectedTeam}
+                />
+              </TabsContent>
+              <TabsContent value="category-report">
+                <CategoryReportCard
                   leagueKey={selectedLeague?.league_key ?? null}
                   teamKey={selectedTeam}
                 />
