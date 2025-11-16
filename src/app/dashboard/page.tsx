@@ -6,6 +6,7 @@ import { Roster } from "@/components/Roster";
 import { RosterAverages } from "@/components/RosterAverages";
 import { RosterPredictions } from "@/components/RosterPredictions";
 import { CategoryReportCard } from "@/components/CategoryReportCard";
+import { OpponentScoutTab } from "@/components/OpponentScoutTab";
 import { LeagueSelector } from "@/components/LeagueSelector";
 import { TeamSelector } from "@/components/TeamSelector";
 import type { League } from "@/types/yahoo";
@@ -56,7 +57,7 @@ export default function DashboardPage() {
 
           {selectedLeague && (
             <TeamSelector
-              leagueKey={selectedLeague?.league_key ?? null}
+              leagueKey={selectedLeague.league_key}
               selectedTeam={selectedTeam}
               onSelect={handleTeamSelect}
             />
@@ -69,39 +70,47 @@ export default function DashboardPage() {
               <TabsList>
                 <TabsTrigger value="weekly-stats">Weekly Stats</TabsTrigger>
                 <TabsTrigger value="roster">Roster</TabsTrigger>
-                <TabsTrigger value="roster-averages">Roster Averages</TabsTrigger>
+                <TabsTrigger value="roster-averages">
+                  Roster Averages
+                </TabsTrigger>
                 <TabsTrigger value="predictions">Predictions</TabsTrigger>
                 <TabsTrigger value="category-report">
                   Season Report Card
                 </TabsTrigger>
+                <TabsTrigger value="opponent-scout">
+                  Opponent Scout
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="weekly-stats">
                 <WeeklyStats
-                  leagueKey={selectedLeague?.league_key ?? null}
+                  leagueKey={selectedLeague.league_key}
                   teamKey={selectedTeam}
                 />
               </TabsContent>
               <TabsContent value="roster">
-                <Roster
-                  league={selectedLeague}
-                  teamKey={selectedTeam}
-                />
+                <Roster league={selectedLeague} teamKey={selectedTeam} />
               </TabsContent>
               <TabsContent value="roster-averages">
                 <RosterAverages
-                  leagueKey={selectedLeague?.league_key ?? null}
+                  leagueKey={selectedLeague.league_key}
                   teamKey={selectedTeam}
                 />
               </TabsContent>
               <TabsContent value="predictions">
                 <RosterPredictions
-                  leagueKey={selectedLeague?.league_key ?? null}
+                  leagueKey={selectedLeague.league_key}
                   teamKey={selectedTeam}
                 />
               </TabsContent>
               <TabsContent value="category-report">
                 <CategoryReportCard
-                  leagueKey={selectedLeague?.league_key ?? null}
+                  leagueKey={selectedLeague.league_key}
+                  teamKey={selectedTeam}
+                />
+              </TabsContent>
+              <TabsContent value="opponent-scout">
+                <OpponentScoutTab
+                  leagueKey={selectedLeague.league_key}
                   teamKey={selectedTeam}
                 />
               </TabsContent>

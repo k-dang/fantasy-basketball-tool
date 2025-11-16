@@ -314,12 +314,15 @@ export function parseMatchups(
         },
       })
     );
+    const opponentTeamKey = matchup[0].teams[1].team[0][0].team_key as string;
+
     const parsedMatchup = {
       week: parseInt(matchup.week as string),
       week_start: matchup.week_start,
       week_end: matchup.week_end,
       status: matchup.status,
       winner_team_key: matchup.winner_team_key,
+      opponent_team_key: opponentTeamKey,
       team_stats: teamStats,
       opponent_stats: opponentStats,
     };

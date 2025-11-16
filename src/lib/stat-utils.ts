@@ -195,4 +195,165 @@ export function getStatBackgroundColor(
 
   // Use a light background with good saturation for visibility
   return `hsl(${hue}, 70%, 90%)`;
-};
+}
+
+export interface CategoryWeakness {
+  statId: string;
+  displayName: string;
+  opponentValue: number;
+  userValue: number;
+  difference: number;
+  percentageDifference: number;
+  severity: "high" | "medium" | "low";
+  isExploitable: boolean;
+}
+
+/**
+ * Calculate aggregated category totals from roster averages
+ * Sums each player's average for each stat category
+ * For percentage stats (FG%, FT%), calculates simple average instead of sum
+ */
+export function calculateCategoryTotals(
+  rosterAverages: Array<{
+    aggregated_stats?: Array<{
+      stat_id: string;
+      display_name: string;
+      average: number | null;
+    }>;
+  }>
+): Record<string, { displayName: string; total: number; count: number }> {
+  const totals: Record<
+    string,
+    { displayName: string; total: number; count: number }
+  > = {};
+
+  // Stat IDs for percentage stats that should be averaged, not summed
+  const PERCENTAGE_STAT_IDS = ["5", "8"]; // "5" = FG%, "8" = FT%
+
+  for (const player of rosterAverages) {
+    if (!player.aggregated_stats) continue;
+
+    for (const stat of player.aggregated_stats) {
+      if (stat.average === null || stat.average === undefined) continue;
+
+      if (!totals[stat.stat_id]) {
+        totals[stat.stat_id] = {
+          displayName: stat.display_name,
+          total: 0,
+          count: 0,
+        };
+      }
+
+      totals[stat.stat_id].total += stat.average;
+      totals[stat.stat_id].count += 1;
+    }
+  }
+
+  // For percentage stats, convert sum to average
+  for (const statId of PERCENTAGE_STAT_IDS) {
+    if (totals[statId] && totals[statId].count > 0) {
+      totals[statId].total = totals[statId].total / totals[statId].count;
+    }
+  }
+
+  console.log(totals);
+  return totals;
+}
+
+/**
+ * Identify exploitable weaknesses by comparing opponent vs user team category totals
+ * Returns categories where the opponent is significantly weaker
+ */
+export function identifyExploitableWeaknesses(
+  opponentTotals: Record<
+    string,
+    { displayName: string; total: number; count: number }
+  >,
+  userTotals: Record<
+    string,
+    { displayName: string; total: number; count: number }
+  >,
+  thresholdPercentage: number = 0.1 // 10% difference threshold
+): CategoryWeakness[] {
+  const weaknesses: CategoryWeakness[] = [];
+
+  // Get all unique stat IDs from both totals
+  const allStatIds = new Set([
+    ...Object.keys(opponentTotals),
+    ...Object.keys(userTotals),
+  ]);
+
+  for (const statId of allStatIds) {
+    const opponentStat = opponentTotals[statId];
+    const userStat = userTotals[statId];
+
+    // Skip if either stat is missing or has no data
+    if (!opponentStat || !userStat) continue;
+    if (opponentStat.total === 0 && userStat.total === 0) continue;
+
+    const opponentValue = opponentStat.total;
+    const userValue = userStat.total;
+    const displayName = opponentStat.displayName || userStat.displayName;
+
+    // Skip stats that shouldn't be highlighted
+    if (shouldSkipHighlight(displayName)) continue;
+
+    const lowerIsBetter = isLowerBetter(statId, displayName);
+
+    let difference: number;
+    let percentageDifference: number;
+    let isExploitable: boolean;
+
+    if (lowerIsBetter) {
+      // For turnovers: exploit if opponent has MORE turnovers
+      difference = opponentValue - userValue;
+      percentageDifference =
+        userValue !== 0 ? (difference / userValue) * 100 : 0;
+      // Exploitable if opponent has significantly more turnovers
+      isExploitable =
+        difference > 0 && percentageDifference >= thresholdPercentage * 100;
+    } else {
+      // For most stats: exploit if opponent has LESS
+      difference = userValue - opponentValue;
+      percentageDifference =
+        userValue !== 0 ? (difference / userValue) * 100 : 0;
+      // Exploitable if opponent is significantly lower
+      isExploitable =
+        difference > 0 && percentageDifference >= thresholdPercentage * 100;
+    }
+
+    // Determine severity based on percentage difference
+    let severity: "high" | "medium" | "low" = "low";
+    if (Math.abs(percentageDifference) >= 20) {
+      severity = "high";
+    } else if (Math.abs(percentageDifference) >= 10) {
+      severity = "medium";
+    }
+
+    weaknesses.push({
+      statId,
+      displayName,
+      opponentValue,
+      userValue,
+      difference: Math.abs(difference),
+      percentageDifference: Math.abs(percentageDifference),
+      severity,
+      isExploitable,
+    });
+  }
+
+  // Sort by exploitability and severity
+  return weaknesses.sort((a, b) => {
+    // Prioritize exploitable weaknesses
+    if (a.isExploitable && !b.isExploitable) return -1;
+    if (!a.isExploitable && b.isExploitable) return 1;
+
+    // Then sort by severity
+    const severityOrder = { high: 0, medium: 1, low: 2 };
+    const severityDiff = severityOrder[a.severity] - severityOrder[b.severity];
+    if (severityDiff !== 0) return severityDiff;
+
+    // Finally by percentage difference
+    return b.percentageDifference - a.percentageDifference;
+  });
+}

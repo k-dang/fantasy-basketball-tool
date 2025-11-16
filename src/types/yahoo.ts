@@ -144,6 +144,7 @@ export interface ParsedMatchup {
   week_end: string;
   status: string;
   winner_team_key: string;
+  opponent_team_key: string;
   team_stats?: Array<{ stat: ExtendedStat }>;
   opponent_stats?: Array<{ stat: ExtendedStat }>;
 }
