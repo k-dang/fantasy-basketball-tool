@@ -1,7 +1,4 @@
-import {
-  calculateAverage,
-  calculateStandardDeviation,
-} from "@/lib/stat-utils";
+import { calculateStandardDeviation } from "@/lib/stat-utils";
 import type { TrendDirection, PlayerWeeklyStats } from "@/types/yahoo";
 
 /**
