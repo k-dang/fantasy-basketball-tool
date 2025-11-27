@@ -3,13 +3,6 @@
 import { useState, useMemo } from "react";
 import { OpponentScout } from "@/components/OpponentScout";
 import { useTeamMatchups } from "@/lib/hooks";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
@@ -64,17 +57,16 @@ export function OpponentScoutTab({
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Opponent Scout</CardTitle>
-          <CardDescription>
-            Analyze opponent team strengths and weaknesses by comparing category
-            averages. Select a matchup week to scout the opponent.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col space-y-2">
-            {matchupsWithOpponents.map((matchup) => {
+      {/* Sticky header with week selector */}
+      <div className="sticky top-0 z-20 bg-background border-b pb-4 mb-4">
+        <div className="mb-3">
+          <h2 className="text-2xl font-semibold">Opponent Scout</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Analyze opponent team strengths and weaknesses by comparing category averages.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 pb-2">
+          {matchupsWithOpponents.map((matchup) => {
               const isSelected =
                 selectedMatchup &&
                 selectedMatchup.week === matchup.week &&
@@ -92,20 +84,19 @@ export function OpponentScoutTab({
                       setSelectedMatchup(matchup);
                     }
                   }}
-                  className="justify-start"
+                  className="rounded-full whitespace-nowrap"
+                  size="sm"
                 >
-                  <span className="truncate">
-                    Week {matchup.week}
-                    {matchup.status === "postevent" && " (Completed)"}
-                    {matchup.status === "live" && " (Live)"}
-                  </span>
+                  Week {matchup.week}
+                  {matchup.status === "postevent" && " (Completed)"}
+                  {matchup.status === "live" && " (Live)"}
                 </Button>
               );
             })}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
+      {/* Scout content */}
       {selectedMatchup && selectedMatchup.opponent_team_key && (
         <OpponentScout
           leagueKey={leagueKey}
