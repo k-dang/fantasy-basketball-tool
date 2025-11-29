@@ -10,7 +10,6 @@ import {
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -18,14 +17,11 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Badge } from "@/components/ui/badge";
 import { useTeamRosterAverages } from "@/lib/hooks";
-import {
-  getStatBackgroundColor,
-  getStatusBadgeVariant,
-} from "@/lib/stat-utils";
+import { calculateStatRanges } from "@/lib/stat-utils";
+import { PlayerCell } from "@/components/PlayerCell";
+import { ColoredStatCell } from "@/components/ColoredStatCell";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 
 interface RosterAveragesProps {
@@ -58,32 +54,16 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
     })) || [];
 
   // Calculate min/max ranges for each stat (excluding null values)
-  const statRanges = useMemo(() => {
-    const ranges: Record<string, { min: number; max: number }> = {};
-
-    originalRoster.forEach((player) => {
-      player.aggregated_stats?.forEach((stat) => {
-        if (stat.average === null || stat.average === undefined) {
-          return;
-        }
-
-        if (!ranges[stat.stat_id]) {
-          ranges[stat.stat_id] = { min: stat.average, max: stat.average };
-        } else {
-          ranges[stat.stat_id].min = Math.min(
-            ranges[stat.stat_id].min,
-            stat.average
-          );
-          ranges[stat.stat_id].max = Math.max(
-            ranges[stat.stat_id].max,
-            stat.average
-          );
-        }
-      });
-    });
-
-    return ranges;
-  }, [originalRoster]);
+  const statRanges = useMemo(
+    () =>
+      calculateStatRanges(originalRoster, (player) =>
+        player.aggregated_stats?.map((stat) => ({
+          stat_id: stat.stat_id,
+          average: stat.average,
+        }))
+      ),
+    [originalRoster]
+  );
 
   // Sort roster based on sort state
   const roster = useMemo(() => {
@@ -200,54 +180,25 @@ export function RosterAverages({ leagueKey, teamKey }: RosterAveragesProps) {
             <TableBody>
               {roster.map((player, index) => (
                 <TableRow key={`player-${index}-${player.name}`}>
-                  <TableCell className="sticky left-0 bg-background z-10 font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="relative size-10 shrink-0">
-                        <Image
-                          src={player.image_url || ""}
-                          alt={player.name || "Player"}
-                          fill
-                          sizes="48px"
-                          className="rounded-full object-cover object-top"
-                          unoptimized
-                        />
-                      </div>
-                      <span>{player.name || "Unknown Player"}</span>
-                      {player.status && (
-                        <Badge
-                          variant={getStatusBadgeVariant(player.status)}
-                          title={player.status_full || player.status}
-                        >
-                          {player.status}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
+                  <PlayerCell
+                    name={player.name}
+                    image_url={player.image_url}
+                    status={player.status}
+                    status_full={player.status_full}
+                  />
                   {stats.map((stat) => {
                     const playerStat = player.aggregated_stats?.find(
                       (s) => s.stat_id === stat.stat_id
                     );
                     const average = playerStat?.average;
-                    const formattedValue =
-                      average === null || average === undefined
-                        ? "-"
-                        : average.toFixed(1);
-
-                    const backgroundColor = getStatBackgroundColor(
-                      stat.stat_id,
-                      average,
-                      statRanges
-                    );
 
                     return (
-                      <TableCell
+                      <ColoredStatCell
                         key={stat.stat_id}
-                        style={
-                          backgroundColor ? { backgroundColor } : undefined
-                        }
-                      >
-                        {formattedValue}
-                      </TableCell>
+                        value={average}
+                        statId={stat.stat_id}
+                        statRanges={statRanges}
+                      />
                     );
                   })}
                 </TableRow>

@@ -10,7 +10,6 @@ import {
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -18,10 +17,11 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Badge } from "@/components/ui/badge";
 import { useLeagues, useTeamRoster } from "@/lib/hooks";
-import { getStatusBadgeVariant } from "@/lib/stat-utils";
-import Image from "next/image";
+import { calculateStatRanges } from "@/lib/stat-utils";
+import { PlayerCell } from "@/components/PlayerCell";
+import { ColoredStatCell } from "@/components/ColoredStatCell";
+import { useMemo } from "react";
 import type { League } from "@/types/yahoo";
 
 interface TeamRosterProps {
@@ -48,6 +48,18 @@ export function Roster({ league, teamKey }: TeamRosterProps) {
       stat_id: stat.stat_id,
       display_name: stat.display_name,
     })) || [];
+
+  // Calculate min/max ranges for each stat (excluding null values)
+  const statRanges = useMemo(
+    () =>
+      calculateStatRanges(rosterData?.roster || [], (player) =>
+        player.stats?.map((stat) => ({
+          stat_id: stat.stat_id,
+          value: stat.value,
+        }))
+      ),
+    [rosterData?.roster]
+  );
 
   if (isLoading || leaguesLoading) {
     return <LoadingState title="Roster" message="Loading roster..." />;
@@ -95,43 +107,25 @@ export function Roster({ league, teamKey }: TeamRosterProps) {
             <TableBody>
               {roster.map((player, index) => (
                 <TableRow key={`player-${index}-${player.name}`}>
-                  <TableCell className="sticky left-0 bg-background z-10 font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="relative size-10 shrink-0">
-                        <Image
-                          src={player.image_url || ""}
-                          alt={player.name || "Player"}
-                          fill
-                          sizes="48px"
-                          className="rounded-full object-cover object-top"
-                          unoptimized
-                        />
-                      </div>
-                      <span>{player.name || "Unknown Player"}</span>
-                      {player.status && (
-                        <Badge
-                          variant={getStatusBadgeVariant(player.status)}
-                          title={player.status_full || player.status}
-                        >
-                          {player.status}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
+                  <PlayerCell
+                    name={player.name}
+                    image_url={player.image_url}
+                    status={player.status}
+                    status_full={player.status_full}
+                  />
                   {stats.map((stat) => {
                     const playerStat = player.stats?.find(
                       (s) => s.stat_id === stat.stat_id
                     );
                     const value = playerStat?.value || "-";
-                    const formattedValue =
-                      value === "-"
-                        ? "-"
-                        : !isNaN(parseFloat(value))
-                        ? parseFloat(value).toFixed(1)
-                        : value;
 
                     return (
-                      <TableCell key={stat.stat_id}>{formattedValue}</TableCell>
+                      <ColoredStatCell
+                        key={stat.stat_id}
+                        value={value}
+                        statId={stat.stat_id}
+                        statRanges={statRanges}
+                      />
                     );
                   })}
                 </TableRow>

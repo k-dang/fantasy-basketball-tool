@@ -169,6 +169,55 @@ export function getStatusBadgeVariant(
   return "default";
 }
 
+// Calculate min/max ranges for each stat from roster data
+// Works with both player.stats (Roster) and player.aggregated_stats (RosterAverages)
+export function calculateStatRanges<T>(
+  data: T[],
+  getStats: (item: T) => Array<{
+    stat_id: string;
+    value?: string | number | null;
+    average?: number | null;
+  }> | undefined
+): Record<string, { min: number; max: number }> {
+  const ranges: Record<string, { min: number; max: number }> = {};
+
+  data.forEach((item) => {
+    const stats = getStats(item);
+    if (!stats) return;
+
+    stats.forEach((stat) => {
+      // Handle both 'value' (Roster) and 'average' (RosterAverages)
+      const numericValue =
+        stat.average !== undefined
+          ? stat.average
+          : stat.value !== undefined && stat.value !== null
+          ? typeof stat.value === "string"
+            ? parseFloat(stat.value)
+            : stat.value
+          : null;
+
+      if (numericValue === null || isNaN(numericValue)) {
+        return;
+      }
+
+      if (!ranges[stat.stat_id]) {
+        ranges[stat.stat_id] = { min: numericValue, max: numericValue };
+      } else {
+        ranges[stat.stat_id].min = Math.min(
+          ranges[stat.stat_id].min,
+          numericValue
+        );
+        ranges[stat.stat_id].max = Math.max(
+          ranges[stat.stat_id].max,
+          numericValue
+        );
+      }
+    });
+  });
+
+  return ranges;
+}
+
 // Get background color for a stat value based on its position in the range
 export function getStatBackgroundColor(
   statId: string,
