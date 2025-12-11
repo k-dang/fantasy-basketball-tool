@@ -45,7 +45,7 @@ interface GradeResult {
   variant: "default" | "secondary" | "outline" | "destructive";
 }
 
-const gradeThresholds: Array<{
+export const gradeThresholds: Array<{
   min: number;
   grade: string;
   variant: GradeResult["variant"];
@@ -56,7 +56,7 @@ const gradeThresholds: Array<{
   { min: 0.4, grade: "D", variant: "destructive" },
 ];
 
-function determineOutcome(
+export function determineOutcome(
   matchup: ParsedMatchup,
   statId: string,
   displayName: string
@@ -98,7 +98,7 @@ function determineOutcome(
   };
 }
 
-function getGrade(winPoints: number): GradeResult {
+export function getGrade(winPoints: number): GradeResult {
   for (const threshold of gradeThresholds) {
     if (winPoints >= threshold.min) {
       return { grade: threshold.grade, variant: threshold.variant };
@@ -107,7 +107,7 @@ function getGrade(winPoints: number): GradeResult {
   return { grade: "F", variant: "destructive" };
 }
 
-function buildCategorySummaries(matchups: ParsedMatchup[]): CategorySummary[] {
+export function buildCategorySummaries(matchups: ParsedMatchup[]): CategorySummary[] {
   const completedMatchups = matchups.filter(
     (matchup) => matchup.status === "postevent"
   );
@@ -172,7 +172,7 @@ function buildCategorySummaries(matchups: ParsedMatchup[]): CategorySummary[] {
     .sort((a, b) => b.winPoints / b.games - a.winPoints / a.games);
 }
 
-function formatMargin(displayName: string, margin: number | null): string {
+export function formatMargin(displayName: string, margin: number | null): string {
   if (margin === null) {
     return "-";
   }

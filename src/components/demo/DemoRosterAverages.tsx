@@ -1,0 +1,173 @@
+"use client";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { calculateStatRanges } from "@/lib/stat-utils";
+import { PlayerCell } from "@/components/PlayerCell";
+import { ColoredStatCell } from "@/components/ColoredStatCell";
+import { ArrowUp, ArrowDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { mockRosterAverages } from "@/lib/mock-data";
+
+export function DemoRosterAverages() {
+  const [sortState, setSortState] = useState<{
+    column: string | null;
+    direction: "asc" | "desc" | null;
+  }>({ column: null, direction: null });
+
+  const originalRoster = mockRosterAverages.roster;
+
+  // Use the order from the first player's aggregated stats
+  const stats =
+    originalRoster[0]?.aggregated_stats?.map((stat) => ({
+      stat_id: stat.stat_id,
+      display_name: stat.display_name,
+    })) || [];
+
+  // Calculate min/max ranges for each stat (excluding null values)
+  const statRanges = useMemo(
+    () =>
+      calculateStatRanges(originalRoster, (player) =>
+        player.aggregated_stats?.map((stat) => ({
+          stat_id: stat.stat_id,
+          average: stat.average,
+        }))
+      ),
+    [originalRoster]
+  );
+
+  // Sort roster based on sort state
+  const roster = useMemo(() => {
+    if (!sortState.column || !sortState.direction) {
+      return originalRoster;
+    }
+
+    const sorted = [...originalRoster].sort((a, b) => {
+      const aStat = a.aggregated_stats?.find(
+        (s) => s.stat_id === sortState.column
+      );
+      const bStat = b.aggregated_stats?.find(
+        (s) => s.stat_id === sortState.column
+      );
+
+      const aValue = aStat?.average ?? null;
+      const bValue = bStat?.average ?? null;
+
+      // Handle null values - place them at the end
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      // Sort numerically
+      const diff = aValue - bValue;
+      return sortState.direction === "asc" ? diff : -diff;
+    });
+
+    return sorted;
+  }, [originalRoster, sortState]);
+
+  const handleSortClick = (statId: string) => {
+    setSortState((prev) => {
+      if (prev.column !== statId) {
+        // New column - sort ascending
+        return { column: statId, direction: "asc" };
+      } else if (prev.direction === "asc") {
+        // Same column, ascending -> descending
+        return { column: statId, direction: "desc" };
+      } else if (prev.direction === "desc") {
+        // Same column, descending -> unsorted
+        return { column: null, direction: null };
+      } else {
+        // Fallback to ascending
+        return { column: statId, direction: "asc" };
+      }
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Roster Averages</CardTitle>
+        <CardDescription>
+          Average weekly statistics for each player on the roster
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="sticky left-0 bg-background z-10">
+                  Player
+                </TableHead>
+                {stats.map((stat) => {
+                  const isSorted = sortState.column === stat.stat_id;
+                  const isAsc = sortState.direction === "asc";
+                  const isDesc = sortState.direction === "desc";
+
+                  return (
+                    <TableHead
+                      key={stat.stat_id}
+                      className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                      onClick={() => handleSortClick(stat.stat_id)}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>{stat.display_name}</span>
+                        {isSorted && isAsc && (
+                          <ArrowUp className="size-4 shrink-0" />
+                        )}
+                        {isSorted && isDesc && (
+                          <ArrowDown className="size-4 shrink-0" />
+                        )}
+                      </div>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {roster.map((player, index) => (
+                <TableRow key={`player-${index}-${player.name}`}>
+                  <PlayerCell
+                    name={player.name}
+                    image_url={player.image_url}
+                    status={player.status}
+                    status_full={player.status_full}
+                  />
+                  {stats.map((stat) => {
+                    const playerStat = player.aggregated_stats?.find(
+                      (s) => s.stat_id === stat.stat_id
+                    );
+                    const average = playerStat?.average;
+
+                    return (
+                      <ColoredStatCell
+                        key={stat.stat_id}
+                        value={average}
+                        statId={stat.stat_id}
+                        statRanges={statRanges}
+                      />
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+

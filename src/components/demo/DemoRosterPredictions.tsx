@@ -15,55 +15,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LoadingState } from "@/components/ui/loading-state";
-import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { useTeamRosterPredictions } from "@/lib/hooks";
-import { ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import {
   getStatBackgroundColor,
   getStatusBadgeVariant,
 } from "@/lib/stat-utils";
+import { mockPredictions } from "@/lib/mock-data";
+import { getTrendIcon } from "@/components/RosterPredictions";
 
-// Get trend icon
-export const getTrendIcon = (trend: "improving" | "stable" | "declining") => {
-  switch (trend) {
-    case "improving":
-      return <ArrowUp className="size-3 shrink-0 text-green-600" />;
-    case "declining":
-      return <ArrowDown className="size-3 shrink-0 text-red-600" />;
-    case "stable":
-      return <Minus className="size-3 shrink-0 text-gray-500" />;
-  }
-};
-
-interface RosterPredictionsProps {
-  leagueKey: string | null;
-  teamKey: string | null;
-}
-
-export function RosterPredictions({
-  leagueKey,
-  teamKey,
-}: RosterPredictionsProps) {
-  const {
-    data: predictionsData,
-    isLoading,
-    error,
-  } = useTeamRosterPredictions(leagueKey, teamKey);
-
+export function DemoRosterPredictions() {
   const [sortState, setSortState] = useState<{
     column: string | null;
     direction: "asc" | "desc" | null;
   }>({ column: null, direction: null });
 
-  const originalRoster = useMemo(
-    () => predictionsData?.roster || [],
-    [predictionsData?.roster]
-  );
+  const originalRoster = mockPredictions.roster;
 
   // Calculate min/max ranges for each stat (excluding null values)
   const statRanges = useMemo(() => {
@@ -154,27 +123,8 @@ export function RosterPredictions({
     });
   };
 
-  if (isLoading) {
-    return (
-      <LoadingState
-        title="Roster Predictions"
-        message="Loading roster predictions..."
-      />
-    );
-  }
-
-  if (error) {
-    return <ErrorState title="Roster Predictions" error={error} />;
-  }
-
   if (!originalRoster || originalRoster.length === 0) {
-    return (
-      <EmptyState
-        title="Roster Predictions"
-        description="No roster predictions data available"
-        message="No players found for this team."
-      />
-    );
+    return null;
   }
 
   return (
@@ -182,8 +132,8 @@ export function RosterPredictions({
       <CardHeader>
         <CardTitle>Roster Predictions</CardTitle>
         <CardDescription>
-          Predicted statistics for week {predictionsData?.target_week || "?"}{" "}
-          based on historical performance
+          Predicted statistics for week {mockPredictions.target_week} based on
+          historical performance
         </CardDescription>
       </CardHeader>
       <CardContent>
