@@ -8,5 +8,9 @@ export function AuthButton() {
     window.location.href = "/api/auth/yahoo";
   };
 
-  return <Button onClick={handleSignIn}>Sign in with Yahoo</Button>;
+  return (
+    <Button onClick={handleSignIn} size="lg" variant="default">
+      Sign in with Yahoo
+    </Button>
+  );
 }
