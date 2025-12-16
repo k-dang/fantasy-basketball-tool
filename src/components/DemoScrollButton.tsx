@@ -16,7 +16,7 @@ export function DemoScrollButton() {
       className="group"
     >
       Explore Demo
-      <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+      <ArrowRight className="ml-2 size-4" />
     </Button>
   );
 }
