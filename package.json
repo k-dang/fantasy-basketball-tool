@@ -16,6 +16,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.548.0",
+    "motion": "^12.23.26",
     "next": "^16.0.10",
     "openid-client": "^6.8.1",
     "react": "^19.2.3",
