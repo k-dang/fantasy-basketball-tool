@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -52,20 +53,35 @@ export function LeagueSelector({
       <CardContent>
         <div className="flex flex-col space-y-2">
           {leagues.map((league) => (
-            <Button
-              key={league.league_key}
-              variant={
-                selectedLeague?.league_key === league.league_key
-                  ? "default"
-                  : "outline"
-              }
-              onClick={() => onSelect(league)}
-              className="justify-start"
-            >
-              <span className="truncate">
-                {league.name} ({league.season})
-              </span>
-            </Button>
+            <div key={league.league_key} className="flex gap-2">
+              <Button
+                variant={
+                  selectedLeague?.league_key === league.league_key
+                    ? "default"
+                    : "outline"
+                }
+                onClick={() => onSelect(league)}
+                className="justify-start flex-1"
+              >
+                <span className="truncate">
+                  {league.name} ({league.season})
+                </span>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                title="Open in Yahoo"
+              >
+                <a
+                  href={`https://basketball.fantasysports.yahoo.com/nba/${league.league_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
           ))}
         </div>
       </CardContent>

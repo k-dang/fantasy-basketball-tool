@@ -19,7 +19,7 @@ export function DemoSection() {
       className="container mx-auto py-12 px-4 scroll-mt-8 relative z-10"
       initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.75 }}
+      viewport={{ once: true, amount: 0.60 }}
       transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="mb-8 text-center">
